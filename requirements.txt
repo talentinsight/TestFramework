@@ -1,0 +1,27 @@
+# TestFramework Requirements
+
+## Development Requirements
+- .NET SDK 7.0 or later
+- Visual Studio 2022 or compatible IDE
+- NUnit 3.13.3 or later (for unit tests)
+- NUnit3TestAdapter 4.4.2 or later
+- Microsoft.NET.Test.Sdk 17.5.0 or later
+
+## Runtime Requirements
+- .NET Runtime 7.0 or later
+- Windows, Linux, or macOS operating system
+
+## Optional Requirements
+- Network connection for Modbus TCP testing
+- C++ development environment for testing C++ applications
+
+## NuGet Package Dependencies
+- Newtonsoft.Json 13.0.3 (for configuration parsing)
+- Microsoft.Extensions.Configuration 7.0.0
+- Microsoft.Extensions.Configuration.Json 7.0.0
+- Microsoft.Extensions.Logging 7.0.0
+- NModbus4 3.0.0 (for Modbus protocol support)
+
+## Development Tools
+- Git for version control
+- dotnet CLI for build and test automation 
