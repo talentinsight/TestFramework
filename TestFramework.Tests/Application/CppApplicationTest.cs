@@ -13,7 +13,7 @@ namespace TestFramework.Tests.Application
         private ICppApplication _application;
 
         [SetUp]
-        public override void Setup()
+        protected override void Setup()
         {
             base.Setup();
             _application = new MockCppApplication(Logger);
@@ -118,7 +118,7 @@ namespace TestFramework.Tests.Application
         }
 
         [TearDown]
-        public override void TearDown()
+        protected override void TearDown()
         {
             _application?.Dispose();
             base.TearDown();

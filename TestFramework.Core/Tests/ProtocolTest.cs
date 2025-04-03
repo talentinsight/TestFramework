@@ -354,7 +354,11 @@ namespace TestFramework.Core.Tests
             return registers;
         }
 
-        protected override void RunTest()
+        /// <summary>
+        /// Runs the Modbus test and returns the test result.
+        /// </summary>
+        /// <returns>A task that represents the asynchronous operation. The task result contains the test result.</returns>
+        public async Task<TestResult> RunTest()
         {
             if (_testFailed)
             {
@@ -394,6 +398,8 @@ namespace TestFramework.Core.Tests
             }
 
             Logger.Log("Register values validated successfully");
+
+            return new TestResult { IsSuccessful = !_testFailed, Message = _testFailed ? "Test failed" : "Test passed" };
         }
     }
 } 
