@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 using NUnit.Framework;
 using TestFramework.Core.Application;
 using TestFramework.Core.Logger;
-using TestFramework.Core.Models;
+using TestFramework.Tests;
 
 namespace TestFramework.Tests.Application
 {
@@ -12,10 +12,11 @@ namespace TestFramework.Tests.Application
     {
         private ICppApplication _application;
 
-        protected override void Setup()
+        [SetUp]
+        public override void Setup()
         {
             base.Setup();
-            _application = new CppApplication(Logger);
+            _application = new MockCppApplication(Logger);
         }
 
         [Test]
@@ -116,7 +117,8 @@ namespace TestFramework.Tests.Application
             Assert.That(response, Is.Not.Null);
         }
 
-        protected override void TearDown()
+        [TearDown]
+        public override void TearDown()
         {
             _application?.Dispose();
             base.TearDown();
