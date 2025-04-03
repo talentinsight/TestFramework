@@ -1,5 +1,6 @@
 using System.Threading.Tasks;
 using TestFramework.Core.Models;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace TestFramework.Core.Tests
 {
