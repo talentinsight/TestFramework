@@ -44,6 +44,15 @@ namespace TestFramework.Core.Logger
         }
 
         /// <summary>
+        /// Logs a message with default Info level
+        /// </summary>
+        /// <param name="message">The message to log</param>
+        public void Log(string message)
+        {
+            Log(message, LogLevel.Info);
+        }
+
+        /// <summary>
         /// Clears all logged messages
         /// </summary>
         public void Clear()
