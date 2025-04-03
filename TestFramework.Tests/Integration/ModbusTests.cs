@@ -1,261 +1,151 @@
-using NUnit.Framework;
 using System;
-using System.Net;
-using System.Net.Sockets;
-using System.Threading;
 using System.Threading.Tasks;
-using TestFramework.Core;
-using TestFramework.Core.Tests;
-using TestFramework.Core.Logger;
-using System.Collections.Generic;
-using TestFramework.Core.Models;
+using NUnit.Framework;
 using TestFramework.Core.Application;
-using Xunit;
+using TestFramework.Core.Logger;
+using TestFramework.Core.Tests;
 
 namespace TestFramework.Tests.Integration
 {
     [TestFixture]
-    [Category("Integration")]
     public class ModbusTests
     {
-        private TcpListener _mockModbusServer;
-        private const int Port = 10502;
-        private const string Host = "127.0.0.1";
-        private CancellationTokenSource _cts;
-        private Task _serverTask;
+        private MockCppApplication _application;
+        private MockLogger _logger;
+        private ModbusTest _modbusTest;
 
-        [OneTimeSetUp]
-        public void OneTimeSetUp()
+        [SetUp]
+        public void Setup()
         {
-            // Start a mock Modbus server for testing
-            _mockModbusServer = new TcpListener(IPAddress.Parse(Host), Port);
-            _mockModbusServer.Start();
-            
-            _cts = new CancellationTokenSource();
-            _serverTask = Task.Run(() => RunMockModbusServer(_cts.Token));
-        }
-
-        [OneTimeTearDown]
-        public void OneTimeTearDown()
-        {
-            _cts.Cancel();
-            try
-            {
-                _serverTask.Wait(1000);
-            }
-            catch (AggregateException)
-            {
-                // Task was canceled, which is expected
-            }
-            
-            _mockModbusServer.Stop();
-        }
-
-        private async Task RunMockModbusServer(CancellationToken cancellationToken)
-        {
-            try
-            {
-                while (!cancellationToken.IsCancellationRequested)
-                {
-                    if (_mockModbusServer.Pending())
-                    {
-                        using var client = await _mockModbusServer.AcceptTcpClientAsync();
-                        using var stream = client.GetStream();
-                        
-                        var buffer = new byte[1024];
-                        int bytesRead = await stream.ReadAsync(buffer, 0, buffer.Length, cancellationToken);
-                        
-                        if (bytesRead >= 12 && buffer[7] == 0x03) // Read Holding Registers
-                        {
-                            // Extract the information from the request
-                            ushort transactionId = (ushort)((buffer[0] << 8) | buffer[1]);
-                            byte unitId = buffer[6];
-                            ushort startAddress = (ushort)((buffer[8] << 8) | buffer[9]);
-                            ushort quantity = (ushort)((buffer[10] << 8) | buffer[11]);
-                            
-                            // Prepare the response
-                            int responseLength = 9 + (quantity * 2);
-                            byte[] response = new byte[responseLength];
-                            
-                            // Transaction ID (2 bytes)
-                            response[0] = (byte)(transactionId >> 8);
-                            response[1] = (byte)(transactionId & 0xFF);
-                            
-                            // Protocol ID (2 bytes)
-                            response[2] = 0x00;
-                            response[3] = 0x00;
-                            
-                            // Length (2 bytes)
-                            response[4] = (byte)(((responseLength - 6) >> 8) & 0xFF);
-                            response[5] = (byte)((responseLength - 6) & 0xFF);
-                            
-                            // Unit ID (1 byte)
-                            response[6] = unitId;
-                            
-                            // Function code (1 byte)
-                            response[7] = 0x03;
-                            
-                            // Byte count (1 byte)
-                            response[8] = (byte)(quantity * 2);
-                            
-                            // Register values (2 bytes each)
-                            for (int i = 0; i < quantity; i++)
-                            {
-                                ushort value = (ushort)(startAddress + i + 1); // Just a simple value for testing
-                                response[9 + (i * 2)] = (byte)(value >> 8);
-                                response[10 + (i * 2)] = (byte)(value & 0xFF);
-                            }
-                            
-                            await stream.WriteAsync(response, 0, response.Length, cancellationToken);
-                        }
-                    }
-                    else
-                    {
-                        await Task.Delay(10, cancellationToken);
-                    }
-                }
-            }
-            catch (OperationCanceledException)
-            {
-                // Expected when cancellation token is triggered
-            }
-            catch (Exception)
-            {
-                // Ignore other exceptions in this mock server
-            }
+            _logger = new MockLogger();
+            _application = new MockCppApplication();
+            _modbusTest = new ModbusTest(_application, _logger);
         }
 
         [Test]
-        public void ModbusTest_WhenConnectedToMockServer_ShouldPassSuccessfully()
+        public async Task WhenReadingHoldingRegisters_ValuesAreReturned()
         {
             // Arrange
-            var test = new ModbusTest(Host, Port);
-            
+            _application.SetModbusResponse(new byte[] { 0x01, 0x03, 0x04, 0x00, 0x0A, 0x00, 0x0B });
+
             // Act
-            var result = test.Execute();
-            
+            var result = await _modbusTest.RunTest();
+
             // Assert
-            Assert.That(result.Status, Is.EqualTo(TestStatus.Passed));
-            Assert.That(result.Message, Is.EqualTo("Test completed successfully"));
+            Assert.That(result.IsSuccess, Is.True);
+            Assert.That(result.Message, Is.EqualTo("Successfully read holding registers"));
         }
 
         [Test]
-        public void ModbusTest_WithInvalidPort_ShouldFail()
+        public async Task WhenReadingInputRegisters_ValuesAreReturned()
         {
             // Arrange
-            var test = new ModbusTest(Host, 12345); // Invalid port
-            
-            // Skip this test since we're using a mock implementation
-            // that doesn't actually try to connect to a real server
-            Assert.Ignore("Test skipped because we're using mock implementations that don't verify connection");
-            
+            _application.SetModbusResponse(new byte[] { 0x01, 0x04, 0x04, 0x00, 0x0C, 0x00, 0x0D });
+
             // Act
-            var result = test.Execute();
-            
+            var result = await _modbusTest.RunTest();
+
             // Assert
-            Assert.That(result.Status, Is.EqualTo(TestStatus.Failed));
-            Assert.That(result.Message, Is.EqualTo("Test completed with failures"));
+            Assert.That(result.IsSuccess, Is.True);
+            Assert.That(result.Message, Is.EqualTo("Successfully read input registers"));
         }
 
         [Test]
-        public void ModbusTest_ExecutionTime_ShouldBeRecorded()
+        public async Task WhenReadingCoils_ValuesAreReturned()
         {
             // Arrange
-            var test = new ModbusTest(Host, Port);
-            
+            _application.SetModbusResponse(new byte[] { 0x01, 0x01, 0x01, 0x01 });
+
             // Act
-            var result = test.Execute();
-            
+            var result = await _modbusTest.RunTest();
+
             // Assert
-            Assert.That(result.ExecutionTimeMs, Is.GreaterThan(0));
+            Assert.That(result.IsSuccess, Is.True);
+            Assert.That(result.Message, Is.EqualTo("Successfully read coils"));
         }
 
         [Test]
-        public void ModbusTest_ShouldReadDifferentDataTypes()
+        public async Task WhenReadingDiscreteInputs_ValuesAreReturned()
         {
             // Arrange
-            var test = new ModbusTest(Host, Port);
-            
+            _application.SetModbusResponse(new byte[] { 0x01, 0x02, 0x01, 0x00 });
+
             // Act
-            var result = test.Execute();
-            
+            var result = await _modbusTest.RunTest();
+
             // Assert
-            Assert.That(result.Status, Is.EqualTo(TestStatus.Passed));
-            Assert.That(result.Message, Is.EqualTo("Test completed successfully"));
+            Assert.That(result.IsSuccess, Is.True);
+            Assert.That(result.Message, Is.EqualTo("Successfully read discrete inputs"));
         }
 
         [Test]
-        public void ModbusTest_ShouldHandleConnectionTimeout()
+        public async Task WhenWritingSingleRegister_OperationSucceeds()
         {
             // Arrange
-            var test = new ModbusTest(Host, Port);
-            test.SetTimeout(100); // Set a very short timeout
-            
+            _application.SetModbusResponse(new byte[] { 0x01, 0x06, 0x00, 0x01, 0x00, 0x0A });
+
             // Act
-            var result = test.Execute();
-            
+            var result = await _modbusTest.RunTest();
+
             // Assert
-            Assert.That(result.Status, Is.EqualTo(TestStatus.Failed));
-            Assert.That(result.Message, Is.EqualTo("Test completed with failures"));
+            Assert.That(result.IsSuccess, Is.True);
+            Assert.That(result.Message, Is.EqualTo("Successfully wrote single register"));
         }
 
         [Test]
-        public void ModbusTest_ShouldValidateRegisterValues()
+        public async Task WhenWritingMultipleRegisters_OperationSucceeds()
         {
             // Arrange
-            var test = new ModbusTest(Host, Port);
-            
+            _application.SetModbusResponse(new byte[] { 0x01, 0x10, 0x00, 0x01, 0x00, 0x02 });
+
             // Act
-            var result = test.Execute();
-            
+            var result = await _modbusTest.RunTest();
+
             // Assert
-            Assert.That(result.Status, Is.EqualTo(TestStatus.Passed));
-            Assert.That(result.Message, Is.EqualTo("Test completed successfully"));
+            Assert.That(result.IsSuccess, Is.True);
+            Assert.That(result.Message, Is.EqualTo("Successfully wrote multiple registers"));
         }
 
         [Test]
-        public void ModbusTest_ShouldHandleInvalidRegisterAccess()
+        public async Task WhenWritingSingleCoil_OperationSucceeds()
         {
             // Arrange
-            var test = new ModbusTest(Host, Port);
-            test.SetInvalidRegister(9999); // Set an invalid register address
-            
+            _application.SetModbusResponse(new byte[] { 0x01, 0x05, 0x00, 0x01, 0xFF, 0x00 });
+
             // Act
-            var result = test.Execute();
-            
+            var result = await _modbusTest.RunTest();
+
             // Assert
-            Assert.That(result.Status, Is.EqualTo(TestStatus.Failed));
-            Assert.That(result.Message, Is.EqualTo("Test completed with failures"));
+            Assert.That(result.IsSuccess, Is.True);
+            Assert.That(result.Message, Is.EqualTo("Successfully wrote single coil"));
         }
 
         [Test]
-        public void ModbusTest_ShouldHandleConnectionLoss()
+        public async Task WhenWritingMultipleCoils_OperationSucceeds()
         {
             // Arrange
-            var test = new ModbusTest(Host, Port);
-            test.SimulateConnectionLoss();
-            
+            _application.SetModbusResponse(new byte[] { 0x01, 0x0F, 0x00, 0x01, 0x00, 0x02 });
+
             // Act
-            var result = test.Execute();
-            
+            var result = await _modbusTest.RunTest();
+
             // Assert
-            Assert.That(result.Status, Is.EqualTo(TestStatus.Failed));
-            Assert.That(result.Message, Is.EqualTo("Test completed with failures"));
+            Assert.That(result.IsSuccess, Is.True);
+            Assert.That(result.Message, Is.EqualTo("Successfully wrote multiple coils"));
         }
 
         [Test]
-        public void ModbusTest_ShouldHandleDataFormatErrors()
+        public async Task WhenModbusErrorOccurs_ErrorIsReported()
         {
             // Arrange
-            var test = new ModbusTest(Host, Port);
-            test.SetInvalidDataFormat();
-            
+            _application.SetModbusResponse(new byte[] { 0x01, 0x83, 0x02 }); // Exception code 2
+
             // Act
-            var result = test.Execute();
-            
+            var result = await _modbusTest.RunTest();
+
             // Assert
-            Assert.That(result.Status, Is.EqualTo(TestStatus.Failed));
-            Assert.That(result.Message, Is.EqualTo("Test completed with failures"));
+            Assert.That(result.IsSuccess, Is.False);
+            Assert.That(result.Message, Contains.Substring("Modbus error"));
         }
     }
 } 
