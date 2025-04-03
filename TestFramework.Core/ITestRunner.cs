@@ -20,13 +20,13 @@ namespace TestFramework.Core
         /// </summary>
         /// <param name="testName">Name of the test to run</param>
         /// <returns>Test result</returns>
-        TestResult RunTest(string testName);
+        TestFramework.Core.Models.TestResult RunTest(string testName);
 
         /// <summary>
         /// Runs all available tests
         /// </summary>
         /// <returns>Collection of test results</returns>
-        IEnumerable<TestResult> RunAllTests();
+        IEnumerable<TestFramework.Core.Models.TestResult> RunAllTests();
 
         /// <summary>
         /// Cleans up resources after test execution

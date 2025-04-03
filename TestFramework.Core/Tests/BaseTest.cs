@@ -38,7 +38,7 @@ namespace TestFramework.Core.Tests
         }
 
         /// <inheritdoc />
-        public abstract Task<TestResult> ExecuteAsync();
+        public abstract Task<TestFramework.Core.Models.TestResult> ExecuteAsync();
 
         /// <inheritdoc />
         public virtual Task SetupAsync()
@@ -61,9 +61,9 @@ namespace TestFramework.Core.Tests
         /// <param name="executionTimeMs">Test execution time in milliseconds</param>
         /// <param name="screenshot">Test screenshot</param>
         /// <returns>Test result</returns>
-        protected TestResult CreateResult(TestStatus status, string message = "", Exception? exception = null, long executionTimeMs = 0, string screenshot = "")
+        protected TestFramework.Core.Models.TestResult CreateResult(TestStatus status, string message = "", Exception? exception = null, long executionTimeMs = 0, string screenshot = "")
         {
-            var result = new TestResult
+            return new TestFramework.Core.Models.TestResult
             {
                 TestName = Name,
                 Category = Category,
@@ -71,16 +71,14 @@ namespace TestFramework.Core.Tests
                 Status = status,
                 IsSuccess = status == TestStatus.Passed,
                 Message = message,
-                ErrorMessage = exception?.Message ?? string.Empty,
-                StackTrace = exception?.StackTrace ?? string.Empty,
-                Exception = exception,
+                ErrorMessage = exception?.Message ?? "",
                 ExecutionTimeMs = executionTimeMs,
-                Screenshot = screenshot,
+                Exception = exception,
                 StartTime = DateTime.Now,
-                EndTime = DateTime.Now
+                EndTime = DateTime.Now,
+                StackTrace = exception?.StackTrace ?? "",
+                Screenshot = screenshot
             };
-
-            return result;
         }
 
         /// <summary>
@@ -91,9 +89,9 @@ namespace TestFramework.Core.Tests
         /// <param name="stackTrace">Test stack trace</param>
         /// <param name="screenshot">Test screenshot</param>
         /// <returns>Test result</returns>
-        protected TestResult CreateResult(bool isSuccess, string errorMessage = "", string stackTrace = "", string screenshot = "")
+        protected TestFramework.Core.Models.TestResult CreateResult(bool isSuccess, string errorMessage = "", string stackTrace = "", string screenshot = "")
         {
-            var result = new TestResult
+            var result = new TestFramework.Core.Models.TestResult
             {
                 TestName = Name,
                 Category = Category,

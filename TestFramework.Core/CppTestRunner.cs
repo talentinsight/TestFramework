@@ -75,13 +75,13 @@ namespace TestFramework.Core
         /// </summary>
         /// <param name="testName">Name of the test to run</param>
         /// <returns>Test result</returns>
-        public TestResult RunTest(string testName)
+        public TestFramework.Core.Models.TestResult RunTest(string testName)
         {
             EnsureInitialized();
 
             if (!_testNames.Contains(testName))
             {
-                return new TestResult
+                return new TestFramework.Core.Models.TestResult
                 {
                     Status = TestStatus.NotApplicable,
                     Message = $"Test '{testName}' not found in available tests"
@@ -93,7 +93,7 @@ namespace TestFramework.Core
             // Start the process with the specific test
             if (!_processHelper.Start(_executablePath!, $"--run-test {testName}"))
             {
-                return new TestResult
+                return new TestFramework.Core.Models.TestResult
                 {
                     Status = TestStatus.Failed,
                     Message = "Failed to start test process"
@@ -103,7 +103,7 @@ namespace TestFramework.Core
             // Wait for the process to complete
             bool completed = _processHelper.WaitForExit(30000); // 30 second timeout
 
-            var result = new TestResult();
+            var result = new TestFramework.Core.Models.TestResult();
 
             if (!completed)
             {
@@ -139,11 +139,11 @@ namespace TestFramework.Core
         /// Runs all available tests
         /// </summary>
         /// <returns>Collection of test results</returns>
-        public IEnumerable<TestResult> RunAllTests()
+        public IEnumerable<TestFramework.Core.Models.TestResult> RunAllTests()
         {
             EnsureInitialized();
 
-            var results = new List<TestResult>();
+            var results = new List<TestFramework.Core.Models.TestResult>();
 
             foreach (var testName in _testNames)
             {

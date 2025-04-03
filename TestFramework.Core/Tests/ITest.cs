@@ -33,7 +33,7 @@ namespace TestFramework.Core.Tests
         /// Executes the test
         /// </summary>
         /// <returns>Test result</returns>
-        Task<TestResult> ExecuteAsync();
+        Task<TestFramework.Core.Models.TestResult> ExecuteAsync();
 
         /// <summary>
         /// Sets up the test environment
