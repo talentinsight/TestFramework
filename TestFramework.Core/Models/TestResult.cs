@@ -23,6 +23,11 @@ namespace TestFramework.Core.Models
         public TestPriority Priority { get; set; }
 
         /// <summary>
+        /// Gets or sets the status of the test
+        /// </summary>
+        public TestStatus Status { get; set; }
+
+        /// <summary>
         /// Gets or sets a value indicating whether the test was successful
         /// </summary>
         public bool IsSuccess { get; set; }
@@ -48,6 +53,11 @@ namespace TestFramework.Core.Models
         public TimeSpan Duration => EndTime - StartTime;
 
         /// <summary>
+        /// Gets or sets the execution time in milliseconds
+        /// </summary>
+        public long ExecutionTimeMs { get; set; }
+
+        /// <summary>
         /// Gets or sets the stack trace if the test failed
         /// </summary>
         public string StackTrace { get; set; }
@@ -63,6 +73,11 @@ namespace TestFramework.Core.Models
         public string? Message { get; set; }
 
         /// <summary>
+        /// Gets or sets any exception that occurred during test execution
+        /// </summary>
+        public Exception? Exception { get; set; }
+
+        /// <summary>
         /// Initializes a new instance of the TestResult class
         /// </summary>
         public TestResult()
@@ -70,13 +85,16 @@ namespace TestFramework.Core.Models
             TestName = string.Empty;
             Category = TestCategory.Unit;
             Priority = TestPriority.Medium;
+            Status = TestStatus.Failed;
             IsSuccess = false;
             ErrorMessage = string.Empty;
             StartTime = DateTime.Now;
             EndTime = DateTime.Now;
+            ExecutionTimeMs = 0;
             StackTrace = string.Empty;
             Screenshot = null;
             Message = null;
+            Exception = null;
         }
     }
 } 
