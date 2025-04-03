@@ -272,106 +272,35 @@ namespace TestFramework.Core.Tests
     }
 
     /// <summary>
-    /// Example implementation for a Modbus protocol test
+    /// Implementation of Modbus protocol test
     /// </summary>
     public class ModbusTest : ProtocolTest
     {
-        private readonly string _deviceIp;
-        private readonly int _port;
         private readonly byte _unitId;
         private readonly ushort _startAddress;
         private readonly ushort _quantity;
         private bool _isSuccess;
 
+        /// <summary>
+        /// Gets a value indicating whether the test was successful
+        /// </summary>
         public bool IsSuccess => _isSuccess;
 
+        /// <summary>
+        /// Initializes a new instance of the ModbusTest class
+        /// </summary>
+        /// <param name="deviceIp">The IP address of the Modbus device</param>
+        /// <param name="port">The port number of the Modbus device</param>
+        /// <param name="unitId">The Modbus unit ID</param>
+        /// <param name="startAddress">The starting address for the test</param>
+        /// <param name="quantity">The number of registers to read/write</param>
         public ModbusTest(string deviceIp, int port, byte unitId, ushort startAddress, ushort quantity)
             : base(deviceIp, port)
         {
-            _deviceIp = deviceIp;
-            _port = port;
             _unitId = unitId;
             _startAddress = startAddress;
             _quantity = quantity;
             _isSuccess = false;
-        }
-
-        /// <summary>
-        /// Creates a Modbus read holding registers request
-        /// </summary>
-        /// <returns>Modbus request packet</returns>
-        private byte[] CreateReadHoldingRegistersRequest()
-        {
-            // Modbus TCP frame format:
-            // Transaction ID (2 bytes) + Protocol ID (2 bytes) + Length (2 bytes) + Unit ID (1 byte) + Function code (1 byte) + Data
-            
-            byte[] request = new byte[12];
-            
-            // Transaction ID (2 bytes)
-            request[0] = 0x00;
-            request[1] = 0x01;
-            
-            // Protocol ID (2 bytes) - 0 for Modbus TCP
-            request[2] = 0x00;
-            request[3] = 0x00;
-            
-            // Length (2 bytes) - remaining bytes count
-            request[4] = 0x00;
-            request[5] = 0x06;
-            
-            // Unit ID (1 byte)
-            request[6] = _unitId;
-            
-            // Function code (1 byte) - 0x03 for Read Holding Registers
-            request[7] = 0x03;
-            
-            // Starting address (2 bytes)
-            request[8] = (byte)(_startAddress >> 8);
-            request[9] = (byte)(_startAddress & 0xFF);
-            
-            // Quantity of registers (2 bytes)
-            request[10] = (byte)(_quantity >> 8);
-            request[11] = (byte)(_quantity & 0xFF);
-            
-            return request;
-        }
-
-        /// <summary>
-        /// Parses the Modbus response
-        /// </summary>
-        /// <param name="response">Response data</param>
-        /// <returns>Array of register values</returns>
-        private ushort[] ParseResponse(byte[] response)
-        {
-            if (response == null || response.Length < 9)
-            {
-                _testFailed = true;
-                throw new InvalidOperationException("Test completed with failures");
-            }
-            
-            // Check function code
-            if (response[7] != 0x03)
-            {
-                _testFailed = true;
-                throw new InvalidOperationException("Test completed with failures");
-            }
-            
-            // Get byte count
-            int byteCount = response[8];
-            
-            // Calculate number of registers
-            int registerCount = byteCount / 2;
-            
-            // Create array for register values
-            ushort[] registers = new ushort[registerCount];
-            
-            // Parse register values
-            for (int i = 0; i < registerCount; i++)
-            {
-                registers[i] = (ushort)((response[9 + (i * 2)] << 8) | response[10 + (i * 2)]);
-            }
-            
-            return registers;
         }
 
         /// <summary>

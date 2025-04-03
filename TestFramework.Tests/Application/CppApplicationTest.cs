@@ -23,6 +23,7 @@ namespace TestFramework.Tests.Application
         protected override void Setup()
         {
             base.Setup();
+            _application = new MockCppApplication(_logger);
         }
 
         [Test]

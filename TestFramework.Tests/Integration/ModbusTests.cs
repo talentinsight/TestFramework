@@ -26,8 +26,8 @@ namespace TestFramework.Tests.Integration
         public void Setup()
         {
             _logger = new MockLogger();
-            _application = new MockCppApplication();
-            _modbusTest = new ModbusTest(_application, _logger);
+            _application = new MockCppApplication(_logger);
+            _modbusTest = new ModbusTest("127.0.0.1", 502, 1, 0, 10);
         }
 
         [Test]
