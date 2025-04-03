@@ -56,7 +56,7 @@ namespace TestFramework.Core.Tests
         }
 
         /// <inheritdoc />
-        public override async Task<TestResult> ExecuteAsync()
+        public override async Task<TestFramework.Core.Models.TestResult> ExecuteAsync()
         {
             try
             {
@@ -79,29 +79,37 @@ Title: {_driver.Title}
 Browser: {_driver.GetType().Name}";
 
                 string screenshot = string.Empty;
-                if (!success && _driver is ITakesScreenshot screenshotDriver)
+                if (!success)
                 {
-                    var screenshotFile = screenshotDriver.GetScreenshot();
-                    screenshot = $"screenshot_{DateTime.Now:yyyyMMdd_HHmmss}.png";
-                    screenshotFile.SaveAsFile(screenshot, OpenQA.Selenium.ScreenshotImageFormat.Png);
+                    try
+                    {
+                        var screenshotBytes = _driver.TakeScreenshot().AsByteArray;
+                        var timestamp = DateTime.Now.ToString("yyyyMMddHHmmss");
+                        var screenshotPath = $"screenshots/{Name}_{timestamp}.png";
+                        System.IO.Directory.CreateDirectory("screenshots");
+                        System.IO.File.WriteAllBytes(screenshotPath, screenshotBytes);
+                        screenshot = screenshotPath;
+                    }
+                    catch (Exception ex)
+                    {
+                        errorMessage += $"\nFailed to capture screenshot: {ex.Message}";
+                    }
                 }
 
-                return CreateResult(success ? TestStatus.Passed : TestStatus.Failed, 
+                return CreateResult(
+                    success ? TestStatus.Passed : TestStatus.Failed,
                     success ? "Test passed successfully" : errorMessage,
                     executionTimeMs: executionTimeMs,
-                    screenshot: screenshot);
+                    screenshot: screenshot
+                );
             }
             catch (Exception ex)
             {
-                string screenshot = string.Empty;
-                if (_driver is ITakesScreenshot screenshotDriver)
-                {
-                    var screenshotFile = screenshotDriver.GetScreenshot();
-                    screenshot = $"error_screenshot_{DateTime.Now:yyyyMMdd_HHmmss}.png";
-                    screenshotFile.SaveAsFile(screenshot, OpenQA.Selenium.ScreenshotImageFormat.Png);
-                }
-
-                return CreateResult(TestStatus.Failed, "Test failed with exception", ex, screenshot: screenshot);
+                return CreateResult(
+                    TestStatus.Failed,
+                    $"Test failed with exception: {ex.Message}",
+                    ex
+                );
             }
         }
 

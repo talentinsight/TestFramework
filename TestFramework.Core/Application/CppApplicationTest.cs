@@ -1,4 +1,7 @@
 using System;
+using System.Threading.Tasks;
+using TestFramework.Core.Models;
+using TestFramework.Core.Utils;
 using TestFramework.Core.Logger;
 
 namespace TestFramework.Core.Application
@@ -9,9 +12,9 @@ namespace TestFramework.Core.Application
     public abstract class CppApplicationTest : TestBase
     {
         /// <summary>
-        /// Gets the C++ application instance being tested
+        /// Gets or sets the application instance
         /// </summary>
-        protected ICppApplication Application { get; private set; }
+        public ICppApplication? Application { get; set; }
 
         /// <summary>
         /// Initializes a new instance of the CppApplicationTest class
