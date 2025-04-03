@@ -11,12 +11,18 @@ namespace TestFramework.Tests.Application
     public class CppApplicationTest : TestBase
     {
         private ICppApplication _application;
+        private ILogger _logger;
+
+        public CppApplicationTest(ILogger logger)
+        {
+            _logger = logger;
+            _application = new MockCppApplication(_logger);
+        }
 
         [SetUp]
         protected override void Setup()
         {
             base.Setup();
-            _application = new MockCppApplication(Logger);
         }
 
         [Test]

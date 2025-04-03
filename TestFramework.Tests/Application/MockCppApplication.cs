@@ -61,8 +61,15 @@ namespace TestFramework.Tests.Application
 
         public bool Initialize()
         {
+            if (_logger == null)
+            {
+                throw new InvalidOperationException("Logger is not initialized");
+            }
+
             _isRunning = true;
             _logs.Add($"[{DateTime.Now}] [INFO] Application initialized");
+            _isInitialized = true;
+            _logger.Log("Application initialized", LogLevel.Info);
             return true;
         }
 
@@ -410,8 +417,10 @@ namespace TestFramework.Tests.Application
 
         public void Dispose()
         {
-            _isRunning = false;
-            _isInitialized = false;
+            if (_isRunning)
+            {
+                Stop();
+            }
             _logger.Log("Application disposed", LogLevel.Info);
             _logger = null;
         }

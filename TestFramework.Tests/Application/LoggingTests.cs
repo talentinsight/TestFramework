@@ -88,5 +88,34 @@ namespace TestFramework.Tests.Application
             Assert.That(_logger.LogMessages, Has.Count.EqualTo(1));
             Assert.That(_logger.LogMessages[0], Contains.Substring("error"));
         }
+
+        [Test]
+        public void Log_WithInfoLevel_AddsMessageToLogs()
+        {
+            var logger = new MockLogger();
+            logger.Log("Test message", LogLevel.Info);
+            Assert.That(logger.Logs, Has.Count.EqualTo(1));
+            Assert.That(logger.Logs[0], Contains.Substring("Test message"));
+        }
+
+        [Test]
+        public void Log_WithErrorLevel_AddsMessageToErrorMessages()
+        {
+            var logger = new MockLogger();
+            logger.Log("Error message", LogLevel.Error);
+            Assert.That(logger.ErrorMessages, Has.Count.EqualTo(1));
+            Assert.That(logger.ErrorMessages[0], Is.EqualTo("Error message"));
+        }
+
+        [Test]
+        public void Clear_RemovesAllMessages()
+        {
+            var logger = new MockLogger();
+            logger.Log("Test message", LogLevel.Info);
+            logger.Log("Error message", LogLevel.Error);
+            logger.Clear();
+            Assert.That(logger.Logs, Is.Empty);
+            Assert.That(logger.ErrorMessages, Is.Empty);
+        }
     }
 } 
