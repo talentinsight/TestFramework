@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using OpenQA.Selenium;
 using OpenQA.Selenium.Support.UI;
 using TestFramework.Core.Models;
+using OpenQA.Selenium.Support.Extensions;
 
 namespace TestFramework.Core.Tests
 {
@@ -69,47 +70,34 @@ namespace TestFramework.Core.Tests
 
                 var startTime = DateTime.Now;
                 var success = await _testAction(_driver);
-                var executionTime = (long)(DateTime.Now - startTime).TotalMilliseconds;
+                var endTime = DateTime.Now;
 
-                var message = $@"UI test results:
+                var errorMessage = success ? string.Empty : $@"UI test failed:
 URL: {_driver.Url}
 Title: {_driver.Title}
-Browser: {_driver.GetType().Name}
-Test Duration: {executionTime}ms";
+Browser: {_driver.GetType().Name}";
 
-                if (!success)
+                string screenshot = string.Empty;
+                if (!success && _driver is ITakesScreenshot screenshotDriver)
                 {
-                    // Take screenshot on failure
-                    if (_driver is ITakesScreenshot screenshotDriver)
-                    {
-                        var screenshot = screenshotDriver.GetScreenshot();
-                        var screenshotPath = $"screenshot_{DateTime.Now:yyyyMMdd_HHmmss}.png";
-                        screenshot.SaveAsFile(screenshotPath, ScreenshotImageFormat.Png);
-                        message += $"\nScreenshot saved to: {screenshotPath}";
-                    }
+                    var screenshotFile = screenshotDriver.GetScreenshot();
+                    screenshot = $"screenshot_{DateTime.Now:yyyyMMdd_HHmmss}.png";
+                    screenshotFile.SaveAsFile(screenshot, ScreenshotImageFormat.Png);
                 }
 
-                return CreateResult(
-                    success ? TestStatus.Passed : TestStatus.Failed,
-                    message,
-                    executionTimeMs: executionTime
-                );
+                return CreateResult(success, errorMessage, string.Empty, screenshot);
             }
             catch (Exception ex)
             {
-                // Take screenshot on exception
+                string screenshot = string.Empty;
                 if (_driver is ITakesScreenshot screenshotDriver)
                 {
-                    var screenshot = screenshotDriver.GetScreenshot();
-                    var screenshotPath = $"error_screenshot_{DateTime.Now:yyyyMMdd_HHmmss}.png";
-                    screenshot.SaveAsFile(screenshotPath, ScreenshotImageFormat.Png);
+                    var screenshotFile = screenshotDriver.GetScreenshot();
+                    screenshot = $"error_screenshot_{DateTime.Now:yyyyMMdd_HHmmss}.png";
+                    screenshotFile.SaveAsFile(screenshot, ScreenshotImageFormat.Png);
                 }
 
-                return CreateResult(
-                    TestStatus.Failed,
-                    "UI test failed with exception",
-                    ex
-                );
+                return CreateResult(false, ex.Message, ex.StackTrace, screenshot);
             }
         }
 

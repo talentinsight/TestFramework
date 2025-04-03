@@ -55,25 +55,27 @@ namespace TestFramework.Core.Tests
         /// <summary>
         /// Creates a test result
         /// </summary>
-        /// <param name="status">Test status</param>
-        /// <param name="message">Test message</param>
-        /// <param name="exception">Test exception</param>
-        /// <param name="executionTimeMs">Test execution time in milliseconds</param>
+        /// <param name="isSuccess">Test success status</param>
+        /// <param name="errorMessage">Test error message</param>
+        /// <param name="stackTrace">Test stack trace</param>
+        /// <param name="screenshot">Test screenshot</param>
         /// <returns>Test result</returns>
-        protected TestResult CreateResult(TestStatus status, string message = "", Exception? exception = null, long executionTimeMs = 0)
+        protected TestResult CreateResult(bool isSuccess, string errorMessage = "", string stackTrace = "", string screenshot = "")
         {
-            return new TestResult
+            var result = new TestResult
             {
                 TestName = Name,
-                Status = status,
                 Category = Category,
                 Priority = Priority,
-                Message = message,
-                Exception = exception,
-                ExecutionTimeMs = executionTimeMs,
-                StartTime = DateTime.Now.AddMilliseconds(-executionTimeMs),
+                IsSuccess = isSuccess,
+                ErrorMessage = errorMessage,
+                StackTrace = stackTrace,
+                Screenshot = screenshot,
+                StartTime = DateTime.Now,
                 EndTime = DateTime.Now
             };
+
+            return result;
         }
     }
 } 
