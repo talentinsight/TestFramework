@@ -1,4 +1,4 @@
-using TestFramework.Core.Enums;
+using TestFramework.Core.Models;
 
 namespace TestFramework.Core.Models
 {

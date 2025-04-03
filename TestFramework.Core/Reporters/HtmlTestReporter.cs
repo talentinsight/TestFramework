@@ -3,9 +3,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
-using TestFramework.Core.Enums;
-using TestFramework.Core.Interfaces;
 using TestFramework.Core.Models;
+using TestFramework.Core.Interfaces;
 using TestFramework.Core.Utils;
 
 namespace TestFramework.Core.Reporters

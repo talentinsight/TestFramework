@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System.Linq;
-using TestFramework.Core.Enums;
 using TestFramework.Core.Models;
 
 namespace TestFramework.Core.Utils
