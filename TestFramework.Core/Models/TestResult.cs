@@ -75,7 +75,7 @@ namespace TestFramework.Core.Models
         /// <summary>
         /// Gets or sets the screenshot
         /// </summary>
-        public string Screenshot { get; set; }
+        public string? Screenshot { get; set; }
 
         /// <summary>
         /// Initializes a new instance of the TestResult class
@@ -83,7 +83,7 @@ namespace TestFramework.Core.Models
         public TestResult()
         {
             TestName = string.Empty;
-            Category = string.Empty;
+            Category = TestCategory.Unknown;
             Priority = TestPriority.Medium;
             IsSuccess = false;
             ErrorMessage = string.Empty;
