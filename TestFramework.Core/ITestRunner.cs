@@ -1,60 +1,9 @@
 using System;
 using System.Collections.Generic;
+using TestFramework.Core.Models;
 
 namespace TestFramework.Core
 {
-    /// <summary>
-    /// Represents a test result with status and message
-    /// </summary>
-    public class TestResult
-    {
-        /// <summary>
-        /// Gets or sets the test status
-        /// </summary>
-        public TestStatus Status { get; set; }
-
-        /// <summary>
-        /// Gets or sets the result message
-        /// </summary>
-        public string Message { get; set; } = string.Empty;
-
-        /// <summary>
-        /// Gets or sets the execution time in milliseconds
-        /// </summary>
-        public long ExecutionTimeMs { get; set; }
-
-        /// <summary>
-        /// Gets or sets any exception that occurred during test execution
-        /// </summary>
-        public Exception? Exception { get; set; }
-    }
-
-    /// <summary>
-    /// Enum representing test execution status
-    /// </summary>
-    public enum TestStatus
-    {
-        /// <summary>
-        /// Test passed successfully
-        /// </summary>
-        Passed,
-
-        /// <summary>
-        /// Test failed
-        /// </summary>
-        Failed,
-
-        /// <summary>
-        /// Test was skipped
-        /// </summary>
-        Skipped,
-
-        /// <summary>
-        /// Test is not applicable in current environment
-        /// </summary>
-        NotApplicable
-    }
-
     /// <summary>
     /// Interface for test runners that execute tests against C++ applications
     /// </summary>

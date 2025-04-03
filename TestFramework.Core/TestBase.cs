@@ -1,6 +1,7 @@
 using System;
 using System.Diagnostics;
 using TestFramework.Core.Logger;
+using TestFramework.Core.Models;
 
 namespace TestFramework.Core
 {

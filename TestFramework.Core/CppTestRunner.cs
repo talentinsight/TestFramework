@@ -5,6 +5,7 @@ using System.Linq;
 using TestFramework.Core.Interfaces;
 using TestFramework.Core.Logger;
 using TestFramework.Core.Utils;
+using TestFramework.Core.Models;
 
 namespace TestFramework.Core
 {
