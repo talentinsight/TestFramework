@@ -17,7 +17,8 @@ namespace TestFramework.Tests.Integration
 
         public ModbusTests()
         {
-            _application = new MockCppApplication(new MockLogger());
+            _logger = new MockLogger();
+            _application = new MockCppApplication(_logger);
             _modbusTest = new ModbusTest("127.0.0.1", 502, 1, 0, 10);
         }
 
@@ -30,7 +31,7 @@ namespace TestFramework.Tests.Integration
         }
 
         [Test]
-        public async Task WhenReadingHoldingRegisters_ValuesAreReturned()
+        public void WhenReadingHoldingRegisters_ValuesAreReturned()
         {
             // Arrange
             _application.SetModbusResponse(new byte[] { 0x01, 0x03, 0x04, 0x00, 0x0A, 0x00, 0x0B });
@@ -43,7 +44,7 @@ namespace TestFramework.Tests.Integration
         }
 
         [Test]
-        public async Task WhenReadingInputRegisters_ValuesAreReturned()
+        public void WhenReadingInputRegisters_ValuesAreReturned()
         {
             // Arrange
             _application.SetModbusResponse(new byte[] { 0x01, 0x04, 0x04, 0x00, 0x0C, 0x00, 0x0D });
@@ -56,7 +57,7 @@ namespace TestFramework.Tests.Integration
         }
 
         [Test]
-        public async Task WhenReadingCoils_ValuesAreReturned()
+        public void WhenReadingCoils_ValuesAreReturned()
         {
             // Arrange
             _application.SetModbusResponse(new byte[] { 0x01, 0x01, 0x01, 0x01 });
@@ -69,7 +70,7 @@ namespace TestFramework.Tests.Integration
         }
 
         [Test]
-        public async Task WhenReadingDiscreteInputs_ValuesAreReturned()
+        public void WhenReadingDiscreteInputs_ValuesAreReturned()
         {
             // Arrange
             _application.SetModbusResponse(new byte[] { 0x01, 0x02, 0x01, 0x00 });
@@ -82,7 +83,7 @@ namespace TestFramework.Tests.Integration
         }
 
         [Test]
-        public async Task WhenWritingSingleRegister_OperationSucceeds()
+        public void WhenWritingSingleRegister_OperationSucceeds()
         {
             // Arrange
             _application.SetModbusResponse(new byte[] { 0x01, 0x06, 0x00, 0x01, 0x00, 0x0A });
@@ -95,7 +96,7 @@ namespace TestFramework.Tests.Integration
         }
 
         [Test]
-        public async Task WhenWritingMultipleRegisters_OperationSucceeds()
+        public void WhenWritingMultipleRegisters_OperationSucceeds()
         {
             // Arrange
             _application.SetModbusResponse(new byte[] { 0x01, 0x10, 0x00, 0x01, 0x00, 0x02 });
@@ -108,7 +109,7 @@ namespace TestFramework.Tests.Integration
         }
 
         [Test]
-        public async Task WhenWritingSingleCoil_OperationSucceeds()
+        public void WhenWritingSingleCoil_OperationSucceeds()
         {
             // Arrange
             _application.SetModbusResponse(new byte[] { 0x01, 0x05, 0x00, 0x01, 0xFF, 0x00 });
@@ -121,7 +122,7 @@ namespace TestFramework.Tests.Integration
         }
 
         [Test]
-        public async Task WhenWritingMultipleCoils_OperationSucceeds()
+        public void WhenWritingMultipleCoils_OperationSucceeds()
         {
             // Arrange
             _application.SetModbusResponse(new byte[] { 0x01, 0x0F, 0x00, 0x01, 0x00, 0x02 });
@@ -134,7 +135,7 @@ namespace TestFramework.Tests.Integration
         }
 
         [Test]
-        public async Task WhenModbusErrorOccurs_ErrorIsReported()
+        public void WhenModbusErrorOccurs_ErrorIsReported()
         {
             // Arrange
             _application.SetModbusResponse(new byte[] { 0x01, 0x83, 0x02 }); // Exception code 2
