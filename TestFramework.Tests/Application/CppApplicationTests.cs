@@ -1,91 +1,78 @@
-using NUnit.Framework;
-using TestFramework.Core;
-using TestFramework.Core.Application;
 using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
-using TestFramework.Core.Models;
-using Xunit;
+using NUnit.Framework;
+using TestFramework.Core.Application;
+using TestFramework.Core.Logger;
 
 namespace TestFramework.Tests.Application
 {
     [TestFixture]
-    public class CppApplicationTests : CppApplicationTest
+    public class CppApplicationTests
     {
-        private const string TestVersion = "2.0.0";
+        private MockCppApplication _application;
+        private MockLogger _logger;
 
-        protected override ICppApplication CreateApplication()
+        [SetUp]
+        public void Setup()
         {
-            return new MockCppApplication(TestVersion);
-        }
-
-        protected override void RunTest()
-        {
-            // Basic test implementation - will be overridden by specific test methods
+            _logger = new MockLogger();
+            _application = new MockCppApplication();
         }
 
         [Test]
-        public void WhenApplicationInitialized_ShouldReturnCorrectVersion()
+        public async Task WhenApplicationIsInitialized_StateIsCorrect()
         {
-            // Arrange
-            var test = new VersionCheckTest(TestVersion);
-            
             // Act
-            var result = test.Execute();
-            
+            var result = await _application.InitializeAsync();
+
             // Assert
-            NUnit.Framework.Assert.That(result.Status, Is.EqualTo(TestStatus.Passed));
+            Assert.That(result, Is.True);
+            Assert.That(_application.IsInitialized, Is.True);
         }
 
         [Test]
-        public void WhenApplicationErrors_ShouldFailGracefully()
+        public async Task WhenApplicationIsStarted_StateIsCorrect()
         {
             // Arrange
-            var test = new ErrorHandlingTest();
-            
+            await _application.InitializeAsync();
+
             // Act
-            var result = test.Execute();
-            
+            var result = await _application.StartAsync();
+
             // Assert
-            NUnit.Framework.Assert.That(result.Status, Is.EqualTo(TestStatus.Failed));
-            NUnit.Framework.Assert.That(result.Message, Does.Contain("Simulated application error"));
-        }
-    }
-
-    // Specific test implementation for version checking
-    public class VersionCheckTest : CppApplicationTest
-    {
-        private readonly string _expectedVersion;
-
-        public VersionCheckTest(string expectedVersion)
-        {
-            _expectedVersion = expectedVersion;
+            Assert.That(result, Is.True);
+            Assert.That(_application.IsRunning, Is.True);
         }
 
-        protected override ICppApplication CreateApplication()
+        [Test]
+        public async Task WhenApplicationIsStopped_StateIsCorrect()
         {
-            return new MockCppApplication(_expectedVersion);
+            // Arrange
+            await _application.InitializeAsync();
+            await _application.StartAsync();
+
+            // Act
+            var result = await _application.StopAsync();
+
+            // Assert
+            Assert.That(result, Is.True);
+            Assert.That(_application.IsRunning, Is.False);
         }
 
-        protected override void RunTest()
+        [Test]
+        public async Task WhenApplicationIsRestarted_StateIsCorrect()
         {
-            var version = Application.GetApplicationVersion();
-            AssertEqual(_expectedVersion, version, "Application version mismatch");
-        }
-    }
+            // Arrange
+            await _application.InitializeAsync();
+            await _application.StartAsync();
+            await _application.StopAsync();
 
-    // Specific test implementation for error handling
-    public class ErrorHandlingTest : CppApplicationTest
-    {
-        protected override ICppApplication CreateApplication()
-        {
-            return new MockCppApplication();
-        }
+            // Act
+            var result = await _application.RestartAsync();
 
-        protected override void RunTest()
-        {
-            var mockApp = (MockCppApplication)Application;
-            mockApp.SimulateError();
+            // Assert
+            Assert.That(result, Is.True);
+            Assert.That(_application.IsRunning, Is.True);
         }
     }
 } 

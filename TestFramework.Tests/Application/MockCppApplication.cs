@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using TestFramework.Core.Application;
+using TestFramework.Core.Logger;
 
 namespace TestFramework.Tests.Application
 {
@@ -10,6 +11,7 @@ namespace TestFramework.Tests.Application
     /// </summary>
     public class MockCppApplication : ICppApplication
     {
+        private readonly ILogger _logger;
         private bool _isRunning;
         private readonly string _version;
         private readonly Dictionary<string, string> _configuration;
@@ -20,8 +22,25 @@ namespace TestFramework.Tests.Application
         private string _lastError = string.Empty;
         private bool _isInErrorState;
         private bool _isInitialized;
-        
-        public MockCppApplication(string version = "1.0.0")
+        private byte[]? _modbusResponse;
+        private bool _throwExceptionOnNextCall;
+        private bool _failNextCall;
+
+        public string LastError => _lastError;
+        public bool IsRunning => _isRunning;
+        public bool IsInitialized => _isInitialized;
+        public bool ThrowExceptionOnNextCall
+        {
+            get => _throwExceptionOnNextCall;
+            set => _throwExceptionOnNextCall = value;
+        }
+        public bool FailNextCall
+        {
+            get => _failNextCall;
+            set => _failNextCall = value;
+        }
+
+        public MockCppApplication(string version = "1.0.0", ILogger? logger = null)
         {
             _version = version;
             _configuration = new Dictionary<string, string>();
@@ -35,6 +54,8 @@ namespace TestFramework.Tests.Application
             _services["Database"] = false;
             _services["WebServer"] = false;
             _services["MessageQueue"] = false;
+
+            _logger = logger ?? new MockLogger();
         }
 
         public bool Initialize()
@@ -49,8 +70,6 @@ namespace TestFramework.Tests.Application
             _isRunning = false;
             _logs.Add($"[{DateTime.Now}] [INFO] Application shut down");
         }
-
-        public bool IsRunning => _isRunning;
 
         public string GetApplicationVersion()
         {
@@ -219,24 +238,65 @@ namespace TestFramework.Tests.Application
 
         public Task<bool> InitializeAsync()
         {
+            if (_throwExceptionOnNextCall)
+            {
+                _throwExceptionOnNextCall = false;
+                throw new Exception("Test exception");
+            }
+
+            if (_failNextCall)
+            {
+                _failNextCall = false;
+                _lastError = "Initialization failed";
+                return Task.FromResult(false);
+            }
+
             _isInitialized = true;
+            _logger.Log("Application initialized", LogLevel.Info);
             return Task.FromResult(true);
         }
 
         public Task<bool> StartAsync()
         {
-            if (!_isInitialized)
+            if (_throwExceptionOnNextCall)
             {
-                _lastError = "Application not initialized";
+                _throwExceptionOnNextCall = false;
+                throw new Exception("Test exception");
+            }
+
+            if (_failNextCall)
+            {
+                _failNextCall = false;
+                _lastError = "Operation failed";
+                return Task.FromResult(false);
+            }
+
+            if (_isRunning)
+            {
+                _lastError = "Application already running";
                 return Task.FromResult(false);
             }
 
             _isRunning = true;
+            _logger.Log("Application started", LogLevel.Info);
             return Task.FromResult(true);
         }
 
         public Task<bool> StopAsync()
         {
+            if (_throwExceptionOnNextCall)
+            {
+                _throwExceptionOnNextCall = false;
+                throw new Exception("Test exception");
+            }
+
+            if (_failNextCall)
+            {
+                _failNextCall = false;
+                _lastError = "Operation failed";
+                return Task.FromResult(false);
+            }
+
             if (!_isRunning)
             {
                 _lastError = "Application not running";
@@ -244,11 +304,25 @@ namespace TestFramework.Tests.Application
             }
 
             _isRunning = false;
+            _logger.Log("Application stopped", LogLevel.Info);
             return Task.FromResult(true);
         }
 
         public Task<bool> RestartAsync()
         {
+            if (_throwExceptionOnNextCall)
+            {
+                _throwExceptionOnNextCall = false;
+                throw new Exception("Test exception");
+            }
+
+            if (_failNextCall)
+            {
+                _failNextCall = false;
+                _lastError = "Operation failed";
+                return Task.FromResult(false);
+            }
+
             if (!_isRunning)
             {
                 _lastError = "Application not running";
@@ -257,32 +331,68 @@ namespace TestFramework.Tests.Application
 
             _isRunning = false;
             _isRunning = true;
+            _logger.Log("Application restarted", LogLevel.Info);
             return Task.FromResult(true);
         }
 
         public Task<string?> GetStatusAsync()
         {
-            if (!_isRunning)
+            if (_throwExceptionOnNextCall)
             {
-                return Task.FromResult<string?>("Stopped");
+                _throwExceptionOnNextCall = false;
+                throw new Exception("Test exception");
             }
 
-            return Task.FromResult<string?>("Running");
+            if (_failNextCall)
+            {
+                _failNextCall = false;
+                _lastError = "Operation failed";
+                return Task.FromResult<string?>(null);
+            }
+
+            return Task.FromResult<string?>(_isRunning ? "Running" : "Stopped");
         }
 
         public Task<bool> SendCommandAsync(string command)
         {
+            if (_throwExceptionOnNextCall)
+            {
+                _throwExceptionOnNextCall = false;
+                throw new Exception("Test exception");
+            }
+
+            if (_failNextCall)
+            {
+                _failNextCall = false;
+                _lastError = "Operation failed";
+                return Task.FromResult(false);
+            }
+
             if (!_isRunning)
             {
                 _lastError = "Application not running";
                 return Task.FromResult(false);
             }
 
+            _logger.Log($"Command sent: {command}", LogLevel.Info);
             return Task.FromResult(true);
         }
 
         public Task<string?> GetResponseAsync()
         {
+            if (_throwExceptionOnNextCall)
+            {
+                _throwExceptionOnNextCall = false;
+                throw new Exception("Test exception");
+            }
+
+            if (_failNextCall)
+            {
+                _failNextCall = false;
+                _lastError = "Operation failed";
+                return Task.FromResult<string?>(null);
+            }
+
             if (!_isRunning)
             {
                 _lastError = "Application not running";
@@ -292,10 +402,16 @@ namespace TestFramework.Tests.Application
             return Task.FromResult<string?>("OK");
         }
 
+        public void SetModbusResponse(byte[] response)
+        {
+            _modbusResponse = response;
+        }
+
         public void Dispose()
         {
             _isRunning = false;
             _isInitialized = false;
+            _logger.Log("Application disposed", LogLevel.Info);
         }
     }
 } 

@@ -1,28 +1,71 @@
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace TestFramework.Core.Application
 {
     /// <summary>
-    /// Interface for interacting with C++ applications under test
+    /// Interface for interacting with a C++ application
     /// </summary>
-    public interface ICppApplication
+    public interface ICppApplication : IDisposable
     {
         /// <summary>
-        /// Initializes the C++ application
+        /// Gets the last error message
         /// </summary>
-        /// <returns>True if initialization successful, false otherwise</returns>
-        bool Initialize();
+        string LastError { get; }
 
         /// <summary>
-        /// Shuts down the C++ application
-        /// </summary>
-        void Shutdown();
-
-        /// <summary>
-        /// Gets whether the application is currently running
+        /// Gets whether the application is running
         /// </summary>
         bool IsRunning { get; }
+
+        /// <summary>
+        /// Gets whether the application is initialized
+        /// </summary>
+        bool IsInitialized { get; }
+
+        /// <summary>
+        /// Initializes the application
+        /// </summary>
+        /// <returns>True if initialization was successful</returns>
+        Task<bool> InitializeAsync();
+
+        /// <summary>
+        /// Starts the application
+        /// </summary>
+        /// <returns>True if start was successful</returns>
+        Task<bool> StartAsync();
+
+        /// <summary>
+        /// Stops the application
+        /// </summary>
+        /// <returns>True if stop was successful</returns>
+        Task<bool> StopAsync();
+
+        /// <summary>
+        /// Restarts the application
+        /// </summary>
+        /// <returns>True if restart was successful</returns>
+        Task<bool> RestartAsync();
+
+        /// <summary>
+        /// Gets the current status of the application
+        /// </summary>
+        /// <returns>The status string or null if failed</returns>
+        Task<string?> GetStatusAsync();
+
+        /// <summary>
+        /// Sends a command to the application
+        /// </summary>
+        /// <param name="command">The command to send</param>
+        /// <returns>True if command was sent successfully</returns>
+        Task<bool> SendCommandAsync(string command);
+
+        /// <summary>
+        /// Gets the response from the application
+        /// </summary>
+        /// <returns>The response string or null if failed</returns>
+        Task<string?> GetResponseAsync();
 
         /// <summary>
         /// Gets the version of the C++ application
@@ -114,12 +157,6 @@ namespace TestFramework.Core.Application
         bool ClearLogs();
 
         // Error State Management
-
-        /// <summary>
-        /// Gets the last error that occurred in the application
-        /// </summary>
-        /// <returns>Error message or null if no error</returns>
-        string GetLastError();
 
         /// <summary>
         /// Clears the error state of the application
