@@ -250,7 +250,7 @@ namespace TestFramework.Core.Tests
         protected override void RunTest()
         {
             var result = RunTestAsync().GetAwaiter().GetResult();
-            if (!result.IsSuccess)
+            if (result.Status != TestStatus.Passed)
             {
                 throw new InvalidOperationException(result.ErrorMessage);
             }
@@ -412,7 +412,12 @@ namespace TestFramework.Core.Tests
 
             Logger.Log("Register values validated successfully");
 
-            return new TestResult { IsSuccessful = !_testFailed, Message = _testFailed ? "Test failed" : "Test passed" };
+            return new TestResult 
+            { 
+                Status = _testFailed ? TestStatus.Failed : TestStatus.Passed,
+                Message = _testFailed ? "Test failed" : "Test passed",
+                ErrorMessage = _testFailed ? "Test completed with failures" : string.Empty
+            };
         }
     }
 } 
