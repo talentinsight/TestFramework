@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using TestFramework.Core.Application;
 
 namespace TestFramework.Tests.Application
@@ -16,8 +17,9 @@ namespace TestFramework.Tests.Application
         private string _logLevel;
         private readonly List<string> _logs;
         private readonly List<string> _errorHistory;
-        private string _lastError;
+        private string _lastError = string.Empty;
         private bool _isInErrorState;
+        private bool _isInitialized;
         
         public MockCppApplication(string version = "1.0.0")
         {
@@ -27,7 +29,6 @@ namespace TestFramework.Tests.Application
             _logs = new List<string>();
             _errorHistory = new List<string>();
             _logLevel = "INFO";
-            _lastError = null;
             _isInErrorState = false;
             
             // Initialize some default services
@@ -214,6 +215,87 @@ namespace TestFramework.Tests.Application
             _isInErrorState = true;
             _logs.Add($"[{DateTime.Now}] [ERROR] {_lastError}");
             throw new Exception(_lastError);
+        }
+
+        public Task<bool> InitializeAsync()
+        {
+            _isInitialized = true;
+            return Task.FromResult(true);
+        }
+
+        public Task<bool> StartAsync()
+        {
+            if (!_isInitialized)
+            {
+                _lastError = "Application not initialized";
+                return Task.FromResult(false);
+            }
+
+            _isRunning = true;
+            return Task.FromResult(true);
+        }
+
+        public Task<bool> StopAsync()
+        {
+            if (!_isRunning)
+            {
+                _lastError = "Application not running";
+                return Task.FromResult(false);
+            }
+
+            _isRunning = false;
+            return Task.FromResult(true);
+        }
+
+        public Task<bool> RestartAsync()
+        {
+            if (!_isRunning)
+            {
+                _lastError = "Application not running";
+                return Task.FromResult(false);
+            }
+
+            _isRunning = false;
+            _isRunning = true;
+            return Task.FromResult(true);
+        }
+
+        public Task<string?> GetStatusAsync()
+        {
+            if (!_isRunning)
+            {
+                return Task.FromResult<string?>("Stopped");
+            }
+
+            return Task.FromResult<string?>("Running");
+        }
+
+        public Task<bool> SendCommandAsync(string command)
+        {
+            if (!_isRunning)
+            {
+                _lastError = "Application not running";
+                return Task.FromResult(false);
+            }
+
+            return Task.FromResult(true);
+        }
+
+        public Task<string?> GetResponseAsync()
+        {
+            if (!_isRunning)
+            {
+                _lastError = "Application not running";
+                return Task.FromResult<string?>(null);
+            }
+
+            return Task.FromResult<string?>("OK");
+        }
+
+        public void Dispose()
+        {
+            _isRunning = false;
+            _isInitialized = false;
         }
     }
 } 
