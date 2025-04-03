@@ -55,6 +55,37 @@ namespace TestFramework.Core.Tests
         /// <summary>
         /// Creates a test result
         /// </summary>
+        /// <param name="status">Test status</param>
+        /// <param name="message">Test message</param>
+        /// <param name="exception">Test exception</param>
+        /// <param name="executionTimeMs">Test execution time in milliseconds</param>
+        /// <param name="screenshot">Test screenshot</param>
+        /// <returns>Test result</returns>
+        protected TestResult CreateResult(TestStatus status, string message = "", Exception? exception = null, long executionTimeMs = 0, string screenshot = "")
+        {
+            var result = new TestResult
+            {
+                TestName = Name,
+                Category = Category,
+                Priority = Priority,
+                Status = status,
+                IsSuccess = status == TestStatus.Passed,
+                Message = message,
+                ErrorMessage = exception?.Message ?? string.Empty,
+                StackTrace = exception?.StackTrace ?? string.Empty,
+                Exception = exception,
+                ExecutionTimeMs = executionTimeMs,
+                Screenshot = screenshot,
+                StartTime = DateTime.Now,
+                EndTime = DateTime.Now
+            };
+
+            return result;
+        }
+
+        /// <summary>
+        /// Creates a test result (legacy method)
+        /// </summary>
         /// <param name="isSuccess">Test success status</param>
         /// <param name="errorMessage">Test error message</param>
         /// <param name="stackTrace">Test stack trace</param>
@@ -67,7 +98,9 @@ namespace TestFramework.Core.Tests
                 TestName = Name,
                 Category = Category,
                 Priority = Priority,
+                Status = isSuccess ? TestStatus.Passed : TestStatus.Failed,
                 IsSuccess = isSuccess,
+                Message = isSuccess ? "Test passed successfully" : "Test failed",
                 ErrorMessage = errorMessage,
                 StackTrace = stackTrace,
                 Screenshot = screenshot,

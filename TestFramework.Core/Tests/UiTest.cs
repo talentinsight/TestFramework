@@ -71,6 +71,7 @@ namespace TestFramework.Core.Tests
                 var startTime = DateTime.Now;
                 var success = await _testAction(_driver);
                 var endTime = DateTime.Now;
+                var executionTimeMs = (long)(endTime - startTime).TotalMilliseconds;
 
                 var errorMessage = success ? string.Empty : $@"UI test failed:
 URL: {_driver.Url}
@@ -82,10 +83,13 @@ Browser: {_driver.GetType().Name}";
                 {
                     var screenshotFile = screenshotDriver.GetScreenshot();
                     screenshot = $"screenshot_{DateTime.Now:yyyyMMdd_HHmmss}.png";
-                    screenshotFile.SaveAsFile(screenshot, ScreenshotImageFormat.Png);
+                    screenshotFile.SaveAsFile(screenshot, OpenQA.Selenium.ScreenshotImageFormat.Png);
                 }
 
-                return CreateResult(success, errorMessage, string.Empty, screenshot);
+                return CreateResult(success ? TestStatus.Passed : TestStatus.Failed, 
+                    success ? "Test passed successfully" : errorMessage,
+                    executionTimeMs: executionTimeMs,
+                    screenshot: screenshot);
             }
             catch (Exception ex)
             {
@@ -94,10 +98,10 @@ Browser: {_driver.GetType().Name}";
                 {
                     var screenshotFile = screenshotDriver.GetScreenshot();
                     screenshot = $"error_screenshot_{DateTime.Now:yyyyMMdd_HHmmss}.png";
-                    screenshotFile.SaveAsFile(screenshot, ScreenshotImageFormat.Png);
+                    screenshotFile.SaveAsFile(screenshot, OpenQA.Selenium.ScreenshotImageFormat.Png);
                 }
 
-                return CreateResult(false, ex.Message, ex.StackTrace, screenshot);
+                return CreateResult(TestStatus.Failed, "Test failed with exception", ex, screenshot: screenshot);
             }
         }
 
