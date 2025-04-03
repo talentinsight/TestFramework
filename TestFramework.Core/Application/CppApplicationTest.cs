@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using TestFramework.Core.Models;
 using TestFramework.Core.Utils;
 using TestFramework.Core.Logger;
+using NUnit.Framework;
 
 namespace TestFramework.Core.Application
 {
@@ -63,5 +64,123 @@ namespace TestFramework.Core.Application
         /// </summary>
         /// <returns>Instance of ICppApplication</returns>
         protected abstract ICppApplication CreateApplication();
+    }
+
+    [TestFixture]
+    public class CppApplicationTest
+    {
+        private ICppApplication _application;
+        private ILogger _logger;
+
+        [SetUp]
+        public void Setup()
+        {
+            _logger = new ConsoleLogger();
+            _application = new CppApplication(_logger);
+        }
+
+        [Test]
+        public async Task Initialize_WhenSuccessful_ReturnsTrue()
+        {
+            // Act
+            var result = await _application.InitializeAsync();
+
+            // Assert
+            Assert.That(result, Is.True);
+            Assert.That(_application.IsInitialized, Is.True);
+        }
+
+        [Test]
+        public async Task Start_WhenInitialized_ReturnsTrue()
+        {
+            // Arrange
+            await _application.InitializeAsync();
+
+            // Act
+            var result = await _application.StartAsync();
+
+            // Assert
+            Assert.That(result, Is.True);
+            Assert.That(_application.IsRunning, Is.True);
+        }
+
+        [Test]
+        public async Task Stop_WhenRunning_ReturnsTrue()
+        {
+            // Arrange
+            await _application.InitializeAsync();
+            await _application.StartAsync();
+
+            // Act
+            var result = await _application.StopAsync();
+
+            // Assert
+            Assert.That(result, Is.True);
+            Assert.That(_application.IsRunning, Is.False);
+        }
+
+        [Test]
+        public async Task Restart_WhenRunning_ReturnsTrue()
+        {
+            // Arrange
+            await _application.InitializeAsync();
+            await _application.StartAsync();
+
+            // Act
+            var result = await _application.RestartAsync();
+
+            // Assert
+            Assert.That(result, Is.True);
+            Assert.That(_application.IsRunning, Is.True);
+        }
+
+        [Test]
+        public async Task GetStatus_WhenRunning_ReturnsRunning()
+        {
+            // Arrange
+            await _application.InitializeAsync();
+            await _application.StartAsync();
+
+            // Act
+            var status = await _application.GetStatusAsync();
+
+            // Assert
+            Assert.That(status, Is.EqualTo("Running"));
+        }
+
+        [Test]
+        public async Task SendCommand_WhenRunning_ReturnsTrue()
+        {
+            // Arrange
+            await _application.InitializeAsync();
+            await _application.StartAsync();
+
+            // Act
+            var result = await _application.SendCommandAsync("test");
+
+            // Assert
+            Assert.That(result, Is.True);
+        }
+
+        [Test]
+        public async Task GetResponse_WhenRunning_ReturnsResponse()
+        {
+            // Arrange
+            await _application.InitializeAsync();
+            await _application.StartAsync();
+            await _application.SendCommandAsync("test");
+
+            // Act
+            var response = await _application.GetResponseAsync();
+
+            // Assert
+            Assert.That(response, Is.Not.Null);
+        }
+
+        [TearDown]
+        public void TearDown()
+        {
+            _application.Dispose();
+        }
     }
 } 
