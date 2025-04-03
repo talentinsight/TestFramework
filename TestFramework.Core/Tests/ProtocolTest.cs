@@ -245,10 +245,22 @@ namespace TestFramework.Core.Tests
         }
 
         /// <summary>
-        /// Runs the protocol test and returns the test result.
+        /// Runs the protocol test
+        /// </summary>
+        protected override void RunTest()
+        {
+            var result = RunTestAsync().GetAwaiter().GetResult();
+            if (!result.IsSuccess)
+            {
+                throw new InvalidOperationException(result.ErrorMessage);
+            }
+        }
+
+        /// <summary>
+        /// Runs the protocol test asynchronously
         /// </summary>
         /// <returns>A task that represents the asynchronous operation. The task result contains the test result.</returns>
-        public abstract Task<TestResult> RunTest();
+        public abstract Task<TestResult> RunTestAsync();
     }
 
     /// <summary>
@@ -356,10 +368,10 @@ namespace TestFramework.Core.Tests
         }
 
         /// <summary>
-        /// Runs the Modbus test and returns the test result.
+        /// Runs the Modbus test asynchronously
         /// </summary>
         /// <returns>A task that represents the asynchronous operation. The task result contains the test result.</returns>
-        public override async Task<TestResult> RunTest()
+        public override async Task<TestResult> RunTestAsync()
         {
             if (_testFailed)
             {
