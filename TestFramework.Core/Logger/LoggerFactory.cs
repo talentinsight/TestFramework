@@ -11,17 +11,18 @@ namespace TestFramework.Core.Logger
         /// <summary>
         /// Creates a logger instance based on the specified type
         /// </summary>
-        /// <param name="loggerType">Type of logger to create</param>
-        /// <param name="filePath">Path for file logger (optional)</param>
-        /// <returns>Logger instance</returns>
-        public static ILogger CreateLogger(LoggerType loggerType, string filePath = "log.txt")
+        /// <param name="type">The type of logger to create</param>
+        /// <param name="filePath">The file path for file logger (optional)</param>
+        /// <returns>A logger instance</returns>
+        /// <exception cref="ArgumentException">Thrown when an invalid logger type is specified</exception>
+        public static ILogger CreateLogger(LoggerType type, string filePath = null)
         {
-            return loggerType switch
+            return type switch
             {
                 LoggerType.Console => new ConsoleLogger(),
-                LoggerType.File => new FileLogger(filePath),
+                LoggerType.File => new FileLogger(filePath ?? throw new ArgumentNullException(nameof(filePath))),
                 LoggerType.Mock => new MockLogger(),
-                _ => throw new ArgumentException($"Invalid logger type: {loggerType}", nameof(loggerType))
+                _ => throw new ArgumentException($"Invalid logger type: {type}", nameof(type))
             };
         }
     }

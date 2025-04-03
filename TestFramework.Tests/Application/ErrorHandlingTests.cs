@@ -2,6 +2,11 @@ using NUnit.Framework;
 using System.Linq;
 using TestFramework.Core;
 using TestFramework.Core.Application;
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+using TestFramework.Core.Models;
+using Xunit;
 
 namespace TestFramework.Tests.Application
 {

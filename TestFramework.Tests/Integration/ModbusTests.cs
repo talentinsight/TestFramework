@@ -7,6 +7,10 @@ using System.Threading.Tasks;
 using TestFramework.Core;
 using TestFramework.Core.Tests;
 using TestFramework.Core.Logger;
+using System.Collections.Generic;
+using TestFramework.Core.Models;
+using TestFramework.Core.Application;
+using Xunit;
 
 namespace TestFramework.Tests.Integration
 {

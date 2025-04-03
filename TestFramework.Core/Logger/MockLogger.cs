@@ -3,26 +3,38 @@ using System.Collections.Generic;
 
 namespace TestFramework.Core.Logger
 {
+    /// <summary>
+    /// Mock logger implementation for testing purposes
+    /// </summary>
     public class MockLogger : ILogger
     {
-        private readonly List<string> _logs = new List<string>();
+        /// <summary>
+        /// Gets the list of logged messages
+        /// </summary>
+        public List<string> LoggedMessages { get; } = new List<string>();
 
-        public IReadOnlyList<string> Logs => _logs;
-
+        /// <summary>
+        /// Logs a message with default log level
+        /// </summary>
+        /// <param name="message">The message to log</param>
         public void Log(string message)
         {
             Log(message, LogLevel.Info);
         }
 
+        /// <summary>
+        /// Logs a message with specified log level
+        /// </summary>
+        /// <param name="message">The message to log</param>
+        /// <param name="level">The log level</param>
         public void Log(string message, LogLevel level)
         {
-            var logMessage = $"[Mock] [{level}] {DateTime.Now:HH:mm:ss} - {message}";
-            _logs.Add(logMessage);
+            LoggedMessages.Add($"[{level}] {message}");
         }
 
         public void Clear()
         {
-            _logs.Clear();
+            LoggedMessages.Clear();
         }
     }
 }
