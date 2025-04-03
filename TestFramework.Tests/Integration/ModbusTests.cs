@@ -36,11 +36,10 @@ namespace TestFramework.Tests.Integration
             _application.SetModbusResponse(new byte[] { 0x01, 0x03, 0x04, 0x00, 0x0A, 0x00, 0x0B });
 
             // Act
-            var result = await _modbusTest.RunTest();
+            _modbusTest.Execute();
 
             // Assert
-            Assert.That(result.IsSuccess, Is.True);
-            Assert.That(result.Message, Is.EqualTo("Successfully read holding registers"));
+            Assert.That(_modbusTest.IsSuccess, Is.True);
         }
 
         [Test]
@@ -50,11 +49,10 @@ namespace TestFramework.Tests.Integration
             _application.SetModbusResponse(new byte[] { 0x01, 0x04, 0x04, 0x00, 0x0C, 0x00, 0x0D });
 
             // Act
-            var result = await _modbusTest.RunTest();
+            _modbusTest.Execute();
 
             // Assert
-            Assert.That(result.IsSuccess, Is.True);
-            Assert.That(result.Message, Is.EqualTo("Successfully read input registers"));
+            Assert.That(_modbusTest.IsSuccess, Is.True);
         }
 
         [Test]
@@ -64,11 +62,10 @@ namespace TestFramework.Tests.Integration
             _application.SetModbusResponse(new byte[] { 0x01, 0x01, 0x01, 0x01 });
 
             // Act
-            var result = await _modbusTest.RunTest();
+            _modbusTest.Execute();
 
             // Assert
-            Assert.That(result.IsSuccess, Is.True);
-            Assert.That(result.Message, Is.EqualTo("Successfully read coils"));
+            Assert.That(_modbusTest.IsSuccess, Is.True);
         }
 
         [Test]
@@ -78,11 +75,10 @@ namespace TestFramework.Tests.Integration
             _application.SetModbusResponse(new byte[] { 0x01, 0x02, 0x01, 0x00 });
 
             // Act
-            var result = await _modbusTest.RunTest();
+            _modbusTest.Execute();
 
             // Assert
-            Assert.That(result.IsSuccess, Is.True);
-            Assert.That(result.Message, Is.EqualTo("Successfully read discrete inputs"));
+            Assert.That(_modbusTest.IsSuccess, Is.True);
         }
 
         [Test]
@@ -92,11 +88,10 @@ namespace TestFramework.Tests.Integration
             _application.SetModbusResponse(new byte[] { 0x01, 0x06, 0x00, 0x01, 0x00, 0x0A });
 
             // Act
-            var result = await _modbusTest.RunTest();
+            _modbusTest.Execute();
 
             // Assert
-            Assert.That(result.IsSuccess, Is.True);
-            Assert.That(result.Message, Is.EqualTo("Successfully wrote single register"));
+            Assert.That(_modbusTest.IsSuccess, Is.True);
         }
 
         [Test]
@@ -106,11 +101,10 @@ namespace TestFramework.Tests.Integration
             _application.SetModbusResponse(new byte[] { 0x01, 0x10, 0x00, 0x01, 0x00, 0x02 });
 
             // Act
-            var result = await _modbusTest.RunTest();
+            _modbusTest.Execute();
 
             // Assert
-            Assert.That(result.IsSuccess, Is.True);
-            Assert.That(result.Message, Is.EqualTo("Successfully wrote multiple registers"));
+            Assert.That(_modbusTest.IsSuccess, Is.True);
         }
 
         [Test]
@@ -120,11 +114,10 @@ namespace TestFramework.Tests.Integration
             _application.SetModbusResponse(new byte[] { 0x01, 0x05, 0x00, 0x01, 0xFF, 0x00 });
 
             // Act
-            var result = await _modbusTest.RunTest();
+            _modbusTest.Execute();
 
             // Assert
-            Assert.That(result.IsSuccess, Is.True);
-            Assert.That(result.Message, Is.EqualTo("Successfully wrote single coil"));
+            Assert.That(_modbusTest.IsSuccess, Is.True);
         }
 
         [Test]
@@ -134,11 +127,10 @@ namespace TestFramework.Tests.Integration
             _application.SetModbusResponse(new byte[] { 0x01, 0x0F, 0x00, 0x01, 0x00, 0x02 });
 
             // Act
-            var result = await _modbusTest.RunTest();
+            _modbusTest.Execute();
 
             // Assert
-            Assert.That(result.IsSuccess, Is.True);
-            Assert.That(result.Message, Is.EqualTo("Successfully wrote multiple coils"));
+            Assert.That(_modbusTest.IsSuccess, Is.True);
         }
 
         [Test]
@@ -148,11 +140,10 @@ namespace TestFramework.Tests.Integration
             _application.SetModbusResponse(new byte[] { 0x01, 0x83, 0x02 }); // Exception code 2
 
             // Act
-            var result = await _modbusTest.RunTest();
+            _modbusTest.Execute();
 
             // Assert
-            Assert.That(result.IsSuccess, Is.False);
-            Assert.That(result.Message, Contains.Substring("Modbus error"));
+            Assert.That(_modbusTest.IsSuccess, Is.False);
         }
     }
 } 

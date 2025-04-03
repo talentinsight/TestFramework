@@ -247,13 +247,21 @@ namespace TestFramework.Core.Tests
         /// <summary>
         /// Runs the protocol test synchronously
         /// </summary>
-        public override void RunTest()
+        protected override void RunTest()
         {
             var result = RunTestAsync().GetAwaiter().GetResult();
             if (result.Status != TestStatus.Passed)
             {
                 throw new InvalidOperationException(result.ErrorMessage);
             }
+        }
+
+        /// <summary>
+        /// Executes the protocol test synchronously
+        /// </summary>
+        public void Execute()
+        {
+            RunTest();
         }
 
         /// <summary>
