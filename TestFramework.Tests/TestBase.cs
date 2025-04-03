@@ -4,7 +4,7 @@ namespace TestFramework.Tests
 {
     public abstract class TestBase
     {
-        protected ILogger Logger { get; private set; }
+        protected ILogger? Logger { get; private set; }
 
         protected virtual void Setup()
         {

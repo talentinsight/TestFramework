@@ -25,6 +25,7 @@ namespace TestFramework.Tests.Application
         private byte[]? _modbusResponse;
         private bool _throwExceptionOnNextCall;
         private bool _failNextCall;
+        private string? _lastResponse;
 
         public string LastError => _lastError;
         public bool IsRunning => _isRunning;
@@ -412,6 +413,12 @@ namespace TestFramework.Tests.Application
             _isRunning = false;
             _isInitialized = false;
             _logger.Log("Application disposed", LogLevel.Info);
+            _logger = null;
+        }
+
+        public string? GetResponse()
+        {
+            return _lastResponse;
         }
     }
 } 

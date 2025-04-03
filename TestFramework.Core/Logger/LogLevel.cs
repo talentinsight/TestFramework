@@ -6,19 +6,29 @@ namespace TestFramework.Core.Logger
     public enum LogLevel
     {
         /// <summary>
-        /// Informational messages
+        /// Debug level for detailed diagnostic information
+        /// </summary>
+        Debug,
+
+        /// <summary>
+        /// Information level for general operational messages
         /// </summary>
         Info,
 
         /// <summary>
-        /// Warning messages
+        /// Warning level for potentially harmful situations
         /// </summary>
         Warning,
 
         /// <summary>
-        /// Error messages
+        /// Error level for error events that might still allow the application to continue running
         /// </summary>
-        Error
+        Error,
+
+        /// <summary>
+        /// Fatal level for very severe error events that will presumably lead the application to abort
+        /// </summary>
+        Fatal
     }
 }
 
