@@ -1,10 +1,6 @@
 pipeline {
     agent any
 
-    tools {
-        dotnet 'dotnet7'
-    }
-
     environment {
         DOTNET_CLI_HOME = '/tmp'
         DOTNET_SKIP_FIRST_TIME_EXPERIENCE = 'true'
