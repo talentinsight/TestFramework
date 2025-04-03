@@ -67,16 +67,15 @@ namespace TestFramework.Core.Application
     }
 
     [TestFixture]
-    public class CppApplicationTest
+    public class CppApplicationTest : TestBase
     {
         private ICppApplication _application;
-        private ILogger _logger;
 
         [SetUp]
-        public void Setup()
+        public override void Setup()
         {
-            _logger = new ConsoleLogger();
-            _application = new CppApplication(_logger);
+            base.Setup();
+            _application = new CppApplication(Logger);
         }
 
         [Test]
@@ -178,9 +177,10 @@ namespace TestFramework.Core.Application
         }
 
         [TearDown]
-        public void TearDown()
+        public override void TearDown()
         {
-            _application.Dispose();
+            _application?.Dispose();
+            base.TearDown();
         }
     }
 } 
