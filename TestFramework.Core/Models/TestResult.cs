@@ -1,3 +1,4 @@
+using System;
 using TestFramework.Core.Models;
 
 namespace TestFramework.Core.Models
@@ -10,12 +11,7 @@ namespace TestFramework.Core.Models
         /// <summary>
         /// Gets or sets the test name
         /// </summary>
-        public string TestName { get; set; } = string.Empty;
-
-        /// <summary>
-        /// Gets or sets the test status
-        /// </summary>
-        public TestStatus Status { get; set; }
+        public string TestName { get; set; }
 
         /// <summary>
         /// Gets or sets the test category
@@ -28,19 +24,14 @@ namespace TestFramework.Core.Models
         public TestPriority Priority { get; set; }
 
         /// <summary>
-        /// Gets or sets the result message
+        /// Gets or sets whether the test is successful
         /// </summary>
-        public string Message { get; set; } = string.Empty;
+        public bool IsSuccess { get; set; }
 
         /// <summary>
-        /// Gets or sets the execution time in milliseconds
+        /// Gets or sets the error message
         /// </summary>
-        public long ExecutionTimeMs { get; set; }
-
-        /// <summary>
-        /// Gets or sets any exception that occurred during test execution
-        /// </summary>
-        public Exception? Exception { get; set; }
+        public string ErrorMessage { get; set; }
 
         /// <summary>
         /// Gets or sets the start time of the test
@@ -51,5 +42,30 @@ namespace TestFramework.Core.Models
         /// Gets or sets the end time of the test
         /// </summary>
         public DateTime EndTime { get; set; }
+
+        /// <summary>
+        /// Gets the duration of the test
+        /// </summary>
+        public TimeSpan Duration => EndTime - StartTime;
+
+        /// <summary>
+        /// Gets or sets the stack trace
+        /// </summary>
+        public string StackTrace { get; set; }
+
+        /// <summary>
+        /// Gets or sets the screenshot
+        /// </summary>
+        public string Screenshot { get; set; }
+
+        public TestResult()
+        {
+            TestName = string.Empty;
+            ErrorMessage = string.Empty;
+            StackTrace = string.Empty;
+            Screenshot = string.Empty;
+            StartTime = DateTime.Now;
+            EndTime = DateTime.Now;
+        }
     }
 } 
