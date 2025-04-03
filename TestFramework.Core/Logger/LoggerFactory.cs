@@ -15,7 +15,8 @@ namespace TestFramework.Core.Logger
         /// <param name="filePath">The file path for file logger (optional)</param>
         /// <returns>A logger instance</returns>
         /// <exception cref="ArgumentException">Thrown when an invalid logger type is specified</exception>
-        public static ILogger CreateLogger(LoggerType type, string filePath = null)
+        /// <exception cref="ArgumentNullException">Thrown when filePath is null for File logger type</exception>
+        public static ILogger CreateLogger(LoggerType type, string? filePath = null)
         {
             return type switch
             {

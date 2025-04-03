@@ -1,8 +1,14 @@
 pipeline {
     agent any
 
+    tools {
+        dotnet 'dotnet7'
+    }
+
     environment {
-        DOTNET_VERSION = '7.0'
+        DOTNET_CLI_HOME = '/tmp'
+        DOTNET_SKIP_FIRST_TIME_EXPERIENCE = 'true'
+        DOTNET_NOLOGO = 'true'
     }
 
     stages {
@@ -20,29 +26,20 @@ pipeline {
 
         stage('Build') {
             steps {
-                sh 'dotnet build --configuration Release --no-restore'
+                sh 'dotnet build --no-restore'
             }
         }
 
         stage('Run Tests') {
             steps {
-                sh 'dotnet test --no-restore --no-build --configuration Release --logger "trx;LogFileName=test-results.trx"'
+                sh 'dotnet test --no-build --verbosity normal'
             }
         }
 
         stage('Code Quality') {
             steps {
-                echo 'Running code quality checks...'
-                // SonarQube analysis will be added here
-            }
-        }
-
-        stage('Package') {
-            when {
-                branch 'main'
-            }
-            steps {
-                sh 'dotnet pack --no-build --configuration Release'
+                sh 'dotnet tool install -g dotnet-format'
+                sh 'dotnet format --check'
             }
         }
     }
@@ -50,9 +47,6 @@ pipeline {
     post {
         always {
             cleanWs()
-        }
-        success {
-            echo 'Pipeline completed successfully!'
         }
         failure {
             echo 'Pipeline failed!'

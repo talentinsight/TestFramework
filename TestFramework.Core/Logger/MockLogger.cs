@@ -32,6 +32,9 @@ namespace TestFramework.Core.Logger
             LoggedMessages.Add($"[{level}] {message}");
         }
 
+        /// <summary>
+        /// Clears all logged messages
+        /// </summary>
         public void Clear()
         {
             LoggedMessages.Clear();

@@ -4,6 +4,7 @@ using System.Text;
 using System.Threading.Tasks;
 using TestFramework.Core.Logger;
 using System.Threading;
+using TestFramework.Core.Models;
 
 namespace TestFramework.Core.Tests
 {
@@ -12,21 +13,56 @@ namespace TestFramework.Core.Tests
     /// </summary>
     public abstract class ProtocolTest : TestBase
     {
+        /// <summary>
+        /// The IP address of the device under test
+        /// </summary>
         protected readonly string _deviceIp;
+
+        /// <summary>
+        /// The port number of the device under test
+        /// </summary>
         protected readonly int _devicePort;
+
+        /// <summary>
+        /// The TCP client used for communication
+        /// </summary>
         protected TcpClient _client;
-        protected int _timeout;
+
+        /// <summary>
+        /// The default timeout for operations in milliseconds
+        /// </summary>
+        protected int _timeout = 5000;
+
+        /// <summary>
+        /// Custom timeout value for specific operations
+        /// </summary>
         protected int _customTimeout;
+
+        /// <summary>
+        /// Flag indicating whether to simulate connection loss
+        /// </summary>
         protected bool _simulateConnectionLoss;
+
+        /// <summary>
+        /// Flag indicating whether to use invalid data format
+        /// </summary>
         protected bool _invalidDataFormat;
+
+        /// <summary>
+        /// Invalid register address for testing error handling
+        /// </summary>
         protected ushort _invalidRegister;
+
+        /// <summary>
+        /// Flag indicating whether the test has failed
+        /// </summary>
         protected bool _testFailed;
 
         /// <summary>
         /// Initializes a new instance of the ProtocolTest class
         /// </summary>
-        /// <param name="deviceIp">IP address of the device to test</param>
-        /// <param name="devicePort">Port of the device to test</param>
+        /// <param name="deviceIp">The IP address of the device under test</param>
+        /// <param name="devicePort">The port number of the device under test</param>
         /// <param name="timeout">Connection timeout in milliseconds</param>
         /// <param name="loggerType">Type of logger to use</param>
         protected ProtocolTest(string deviceIp, int devicePort, int timeout = 5000, LoggerType loggerType = LoggerType.Console)
@@ -99,6 +135,10 @@ namespace TestFramework.Core.Tests
             }
         }
 
+        /// <summary>
+        /// Sends data to the device
+        /// </summary>
+        /// <param name="data">The data to send</param>
         protected void SendData(byte[] data)
         {
             if (_testFailed)
@@ -130,6 +170,12 @@ namespace TestFramework.Core.Tests
             }
         }
 
+        /// <summary>
+        /// Receives data from the device
+        /// </summary>
+        /// <param name="expectedLength">The expected length of the received data</param>
+        /// <param name="timeoutMs">The timeout in milliseconds</param>
+        /// <returns>The received data</returns>
         protected byte[] ReceiveData(int expectedLength, int timeoutMs)
         {
             if (_testFailed)
@@ -159,6 +205,10 @@ namespace TestFramework.Core.Tests
             }
         }
 
+        /// <summary>
+        /// Sets a custom timeout for operations
+        /// </summary>
+        /// <param name="timeoutMs">The timeout in milliseconds</param>
         public void SetTimeout(int timeoutMs)
         {
             _customTimeout = timeoutMs;
@@ -169,21 +219,34 @@ namespace TestFramework.Core.Tests
             }
         }
 
+        /// <summary>
+        /// Sets an invalid register address for testing error handling
+        /// </summary>
+        /// <param name="register">The invalid register address</param>
         public void SetInvalidRegister(ushort register)
         {
             _invalidRegister = register;
         }
 
+        /// <summary>
+        /// Simulates a connection loss
+        /// </summary>
         public void SimulateConnectionLoss()
         {
             _simulateConnectionLoss = true;
         }
 
+        /// <summary>
+        /// Sets the test to use invalid data format
+        /// </summary>
         public void SetInvalidDataFormat()
         {
             _invalidDataFormat = true;
         }
 
+        /// <summary>
+        /// Runs the protocol test
+        /// </summary>
         protected abstract override void RunTest();
     }
 

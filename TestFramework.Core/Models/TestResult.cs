@@ -77,17 +77,20 @@ namespace TestFramework.Core.Models
         /// </summary>
         public string Screenshot { get; set; }
 
+        /// <summary>
+        /// Initializes a new instance of the TestResult class
+        /// </summary>
         public TestResult()
         {
             TestName = string.Empty;
-            Message = string.Empty;
+            Category = string.Empty;
+            Priority = TestPriority.Medium;
+            IsSuccess = false;
             ErrorMessage = string.Empty;
-            StackTrace = string.Empty;
-            Screenshot = string.Empty;
             StartTime = DateTime.Now;
             EndTime = DateTime.Now;
-            Status = TestStatus.Failed;
-            IsSuccess = false;
+            StackTrace = string.Empty;
+            Screenshot = null;
         }
     }
 } 
