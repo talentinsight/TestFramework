@@ -245,9 +245,10 @@ namespace TestFramework.Core.Tests
         }
 
         /// <summary>
-        /// Runs the protocol test
+        /// Runs the protocol test and returns the test result.
         /// </summary>
-        protected abstract override void RunTest();
+        /// <returns>A task that represents the asynchronous operation. The task result contains the test result.</returns>
+        public abstract Task<TestResult> RunTest();
     }
 
     /// <summary>
@@ -358,7 +359,7 @@ namespace TestFramework.Core.Tests
         /// Runs the Modbus test and returns the test result.
         /// </summary>
         /// <returns>A task that represents the asynchronous operation. The task result contains the test result.</returns>
-        public async Task<TestResult> RunTest()
+        public override async Task<TestResult> RunTest()
         {
             if (_testFailed)
             {
