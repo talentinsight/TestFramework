@@ -4,6 +4,7 @@ using NUnit.Framework;
 using TestFramework.Core.Application;
 using TestFramework.Core.Logger;
 using TestFramework.Core.Tests;
+using TestFramework.Tests.Application;
 
 namespace TestFramework.Tests.Integration
 {
