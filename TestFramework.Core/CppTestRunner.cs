@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using TestFramework.Core.Interfaces;
 using TestFramework.Core.Logger;
 using TestFramework.Core.Utils;
 
@@ -22,11 +23,12 @@ namespace TestFramework.Core
         /// <summary>
         /// Initializes a new instance of the CppTestRunner class
         /// </summary>
-        /// <param name="loggerType">Type of logger to use</param>
-        public CppTestRunner(LoggerType loggerType = LoggerType.Console)
+        /// <param name="logger">Logger instance</param>
+        /// <param name="processHelper">Process helper instance</param>
+        public CppTestRunner(ILogger logger, ProcessHelper processHelper)
         {
-            _logger = LoggerFactory.CreateLogger(loggerType);
-            _processHelper = new ProcessHelper();
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            _processHelper = processHelper ?? throw new ArgumentNullException(nameof(processHelper));
             _testNames = new List<string>();
             _testParameters = new Dictionary<string, string>();
         }
