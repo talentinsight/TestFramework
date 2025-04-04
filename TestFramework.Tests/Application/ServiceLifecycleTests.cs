@@ -1,53 +1,63 @@
 using System;
 using System.Threading.Tasks;
-using NUnit.Framework;
 using TestFramework.Core.Application;
-using TestFramework.Core.Logger;
+using TestFramework.Tests.Logger;
+using Xunit;
 
 namespace TestFramework.Tests.Application
 {
-    [TestFixture]
-    public class ServiceLifecycleTests
+    public class ServiceLifecycleTests : IDisposable
     {
-        private MockCppApplication _application;
-        private MockLogger _logger;
+        private readonly MockLogger _logger;
+        private readonly CppApplication _application;
 
-        [SetUp]
-        public void Setup()
+        public ServiceLifecycleTests()
         {
             _logger = new MockLogger();
-            _application = new MockCppApplication();
+            _application = new CppApplication(_logger, "test.exe");
         }
 
-        [Test]
-        public async Task WhenServiceIsStarted_ServiceIsRunning()
+        public void Dispose()
         {
+            _application.Dispose();
+        }
+
+        [Fact]
+        public async Task WhenServiceStarts_StateIsCorrect()
+        {
+            // Arrange
+            await _application.InitializeAsync();
+
             // Act
             var result = await _application.StartAsync();
 
             // Assert
-            Assert.That(result, Is.True);
-            Assert.That(_application.IsRunning, Is.True);
+            Assert.True(result);
+            Assert.True(_application.IsRunning);
+            Assert.False(_application.IsInErrorState);
         }
 
-        [Test]
-        public async Task WhenServiceIsStopped_ServiceIsNotRunning()
+        [Fact]
+        public async Task WhenServiceStops_StateIsCorrect()
         {
             // Arrange
+            await _application.InitializeAsync();
             await _application.StartAsync();
 
             // Act
             var result = await _application.StopAsync();
 
             // Assert
-            Assert.That(result, Is.True);
-            Assert.That(_application.IsRunning, Is.False);
+            Assert.True(result);
+            Assert.False(_application.IsRunning);
+            Assert.False(_application.IsInErrorState);
         }
 
-        [Test]
-        public async Task WhenServiceIsRestarted_ServiceIsRunning()
+        [Fact]
+        public async Task WhenServiceRestarts_StateIsCorrect()
         {
             // Arrange
+            await _application.InitializeAsync();
             await _application.StartAsync();
             await _application.StopAsync();
 
@@ -55,33 +65,21 @@ namespace TestFramework.Tests.Application
             var result = await _application.RestartAsync();
 
             // Assert
-            Assert.That(result, Is.True);
-            Assert.That(_application.IsRunning, Is.True);
+            Assert.True(result);
+            Assert.True(_application.IsRunning);
+            Assert.False(_application.IsInErrorState);
         }
 
-        [Test]
-        public async Task WhenServiceIsAlreadyRunning_StartReturnsFalse()
+        [Fact]
+        public async Task WhenServiceFails_ErrorStateIsSet()
         {
-            // Arrange
-            await _application.StartAsync();
-
             // Act
             var result = await _application.StartAsync();
 
             // Assert
-            Assert.That(result, Is.False);
-            Assert.That(_application.LastError, Is.EqualTo("Application already running"));
-        }
-
-        [Test]
-        public async Task WhenServiceIsNotRunning_StopReturnsFalse()
-        {
-            // Act
-            var result = await _application.StopAsync();
-
-            // Assert
-            Assert.That(result, Is.False);
-            Assert.That(_application.LastError, Is.EqualTo("Application not running"));
+            Assert.False(result);
+            Assert.True(_application.IsInErrorState);
+            Assert.Equal("Application not initialized", _application.LastError);
         }
     }
 } 

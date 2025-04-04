@@ -1,38 +1,39 @@
 using System;
 using System.IO;
 using System.Threading.Tasks;
-using NUnit.Framework;
 using TestFramework.Core.Application;
 using TestFramework.Core.Configuration;
 using TestFramework.Core.Logger;
+using TestFramework.Tests.Logger;
+using Xunit;
 
 namespace TestFramework.Tests.Application
 {
-    [TestFixture]
-    public class ConfigurationTests
+    public class ConfigurationTests : IDisposable
     {
+        private readonly MockLogger _logger;
+        private readonly CppApplication _application;
         private string _testConfigPath;
         private ConfigurationManager _configManager;
-        private MockLogger _logger;
 
-        [SetUp]
-        public void Setup()
+        public ConfigurationTests()
         {
-            _testConfigPath = Path.Combine(Path.GetTempPath(), "test_config.json");
             _logger = new MockLogger();
+            _application = new CppApplication(_logger, "test.exe");
+            _testConfigPath = Path.Combine(Path.GetTempPath(), "test_config.json");
             _configManager = new ConfigurationManager(_logger);
         }
 
-        [TearDown]
-        public void Cleanup()
+        public void Dispose()
         {
+            _application.Dispose();
             if (File.Exists(_testConfigPath))
             {
                 File.Delete(_testConfigPath);
             }
         }
 
-        [Test]
+        [Fact]
         public async Task LoadConfiguration_ValidFile_LoadsSuccessfully()
         {
             // Arrange
@@ -48,24 +49,24 @@ namespace TestFramework.Tests.Application
             var result = await _configManager.LoadConfigurationAsync<TestConfig>(_testConfigPath);
 
             // Assert
-            Assert.That(result, Is.Not.Null);
-            Assert.That(result.TestTimeout, Is.EqualTo(5000));
-            Assert.That(result.RetryCount, Is.EqualTo(3));
-            Assert.That(result.LogLevel, Is.EqualTo("DEBUG"));
+            Assert.NotNull(result);
+            Assert.Equal(5000, result.TestTimeout);
+            Assert.Equal(3, result.RetryCount);
+            Assert.Equal("DEBUG", result.LogLevel);
         }
 
-        [Test]
+        [Fact]
         public async Task LoadConfiguration_InvalidFile_ThrowsException()
         {
             // Arrange
             await File.WriteAllTextAsync(_testConfigPath, "invalid json");
 
             // Act & Assert
-            Assert.ThrowsAsync<System.Text.Json.JsonException>(async () =>
+            await Assert.ThrowsAsync<System.Text.Json.JsonException>(async () =>
                 await _configManager.LoadConfigurationAsync<TestConfig>(_testConfigPath));
         }
 
-        [Test]
+        [Fact]
         public async Task SaveConfiguration_ValidConfig_SavesSuccessfully()
         {
             // Arrange
@@ -80,16 +81,16 @@ namespace TestFramework.Tests.Application
             await _configManager.SaveConfigurationAsync(_testConfigPath, config);
 
             // Assert
-            Assert.That(File.Exists(_testConfigPath), Is.True);
+            Assert.True(File.Exists(_testConfigPath));
             var savedConfig = System.Text.Json.JsonSerializer.Deserialize<TestConfig>(
                 await File.ReadAllTextAsync(_testConfigPath));
-            Assert.That(savedConfig, Is.Not.Null);
-            Assert.That(savedConfig.TestTimeout, Is.EqualTo(5000));
-            Assert.That(savedConfig.RetryCount, Is.EqualTo(3));
-            Assert.That(savedConfig.LogLevel, Is.EqualTo("DEBUG"));
+            Assert.NotNull(savedConfig);
+            Assert.Equal(5000, savedConfig.TestTimeout);
+            Assert.Equal(3, savedConfig.RetryCount);
+            Assert.Equal("DEBUG", savedConfig.LogLevel);
         }
 
-        [Test]
+        [Fact]
         public async Task GetConfiguration_AfterLoad_ReturnsSameInstance()
         {
             // Arrange
@@ -102,14 +103,76 @@ namespace TestFramework.Tests.Application
             var result2 = _configManager.GetConfiguration<TestConfig>();
 
             // Assert
-            Assert.That(result1, Is.SameAs(result2));
+            Assert.Same(result1, result2);
         }
 
-        [Test]
+        [Fact]
         public void GetConfiguration_WithoutLoad_ThrowsException()
         {
             // Act & Assert
             Assert.Throws<InvalidOperationException>(() => _configManager.GetConfiguration<TestConfig>());
+        }
+
+        [Fact]
+        public async Task WhenConfigurationIsSet_StateIsUpdated()
+        {
+            // Arrange
+            var config = new TestFramework.Core.Application.ApplicationConfiguration
+            {
+                Port = 502,
+                Host = "localhost",
+                Timeout = 1000
+            };
+
+            // Act
+            var result = await _application.SetConfigurationAsync(config);
+
+            // Assert
+            Assert.True(result);
+            Assert.Equal(config.Port, _application.Configuration.Port);
+            Assert.Equal(config.Host, _application.Configuration.Host);
+            Assert.Equal(config.Timeout, _application.Configuration.Timeout);
+        }
+
+        [Fact]
+        public async Task WhenConfigurationIsInvalid_ReturnsFalse()
+        {
+            // Arrange
+            var config = new TestFramework.Core.Application.ApplicationConfiguration
+            {
+                Port = -1,
+                Host = "",
+                Timeout = 0
+            };
+
+            // Act
+            var result = await _application.SetConfigurationAsync(config);
+
+            // Assert
+            Assert.False(result);
+            Assert.Equal("Invalid configuration", _application.LastError);
+        }
+
+        [Fact]
+        public async Task WhenConfigurationIsSetWhileRunning_ReturnsFalse()
+        {
+            // Arrange
+            await _application.InitializeAsync();
+            await _application.StartAsync();
+
+            var config = new TestFramework.Core.Application.ApplicationConfiguration
+            {
+                Port = 502,
+                Host = "localhost",
+                Timeout = 1000
+            };
+
+            // Act
+            var result = await _application.SetConfigurationAsync(config);
+
+            // Assert
+            Assert.False(result);
+            Assert.Equal("Cannot change configuration while running", _application.LastError);
         }
     }
 

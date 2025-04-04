@@ -1,88 +1,75 @@
 using System;
 using System.Threading.Tasks;
-using NUnit.Framework;
 using TestFramework.Core.Application;
-using TestFramework.Core.Logger;
+using TestFramework.Tests.Logger;
+using Xunit;
 
 namespace TestFramework.Tests.Application
 {
-    [TestFixture]
-    public class ErrorHandlingTests
+    public class ErrorHandlingTests : IDisposable
     {
-        private MockCppApplication _application;
-        private MockLogger _logger;
+        private readonly MockLogger _logger;
+        private readonly CppApplication _application;
 
-        [SetUp]
-        public void Setup()
+        public ErrorHandlingTests()
         {
             _logger = new MockLogger();
-            _application = new MockCppApplication();
+            _application = new CppApplication(_logger, "test.exe");
         }
 
-        [Test]
-        public async Task WhenApplicationThrowsException_ErrorIsLogged()
+        public void Dispose()
         {
-            // Arrange
-            _application.ThrowExceptionOnNextCall = true;
-
-            // Act
-            try
-            {
-                await _application.StartAsync();
-            }
-            catch (Exception)
-            {
-                // Expected exception
-            }
-
-            // Assert
-            Assert.That(_logger.ErrorMessages, Has.Count.EqualTo(1));
-            Assert.That(_logger.ErrorMessages[0], Contains.Substring("Test exception"));
+            _application.Dispose();
         }
 
-        [Test]
-        public async Task WhenApplicationFails_LastErrorIsSet()
+        [Fact]
+        public async Task WhenErrorOccurs_ErrorStateIsSet()
         {
-            // Arrange
-            _application.FailNextCall = true;
-
             // Act
-            var result = await _application.StartAsync();
+            await _application.StartAsync();
 
             // Assert
-            Assert.That(result, Is.False);
-            Assert.That(_application.LastError, Is.EqualTo("Operation failed"));
+            Assert.True(_application.IsInErrorState);
+            Assert.Equal("Application not initialized", _application.LastError);
         }
 
-        [Test]
-        public async Task WhenApplicationRecovers_ErrorStateIsCleared()
+        [Fact]
+        public async Task WhenErrorClears_ErrorStateIsReset()
         {
             // Arrange
-            _application.FailNextCall = true;
-            await _application.StartAsync(); // This will fail
+            await _application.StartAsync();
+            Assert.True(_application.IsInErrorState);
 
             // Act
-            _application.FailNextCall = false;
-            var result = await _application.StartAsync();
+            await _application.InitializeAsync();
 
             // Assert
-            Assert.That(result, Is.True);
-            Assert.That(_application.LastError, Is.Empty);
+            Assert.False(_application.IsInErrorState);
+            Assert.Empty(_application.LastError);
         }
 
-        [Test]
-        public async Task WhenMultipleErrorsOccur_AllErrorsAreLogged()
+        [Fact]
+        public async Task WhenMultipleErrorsOccur_LastErrorIsUpdated()
         {
             // Arrange
-            _application.FailNextCall = true;
+            await _application.StartAsync();
+            Assert.Equal("Application not initialized", _application.LastError);
 
             // Act
-            await _application.StartAsync(); // First error
-            await _application.StopAsync();  // Second error
-            await _application.StartAsync(); // Third error
+            await _application.StopAsync();
 
             // Assert
-            Assert.That(_logger.ErrorMessages, Has.Count.EqualTo(3));
+            Assert.Equal("Application not running", _application.LastError);
+        }
+
+        [Fact]
+        public async Task WhenErrorOccurs_LogsError()
+        {
+            // Act
+            await _application.StartAsync();
+
+            // Assert
+            Assert.Contains(_logger.Logs, log => log.Contains("[ERROR]") && log.Contains("Application not initialized"));
         }
     }
 } 

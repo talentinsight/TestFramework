@@ -8,17 +8,23 @@ namespace TestFramework.Core.Logger
     public interface ILogger
     {
         /// <summary>
-        /// Logs a message with default log level
+        /// Logs a message with the specified log level
+        /// </summary>
+        /// <param name="message">The message to log</param>
+        /// <param name="level">The log level</param>
+        void Log(string message, LogLevel level);
+
+        /// <summary>
+        /// Logs a message with default Info level
         /// </summary>
         /// <param name="message">The message to log</param>
         void Log(string message);
 
         /// <summary>
-        /// Logs a message with specified log level
+        /// Sets the current log level
         /// </summary>
-        /// <param name="message">The message to log</param>
-        /// <param name="level">The log level</param>
-        void Log(string message, LogLevel level);
+        /// <param name="level">The log level to set</param>
+        void SetLogLevel(LogLevel level);
     }
 }
 

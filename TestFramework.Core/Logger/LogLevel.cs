@@ -6,6 +6,11 @@ namespace TestFramework.Core.Logger
     public enum LogLevel
     {
         /// <summary>
+        /// Trace level for detailed diagnostic information
+        /// </summary>
+        Trace,
+
+        /// <summary>
         /// Debug level for detailed diagnostic information
         /// </summary>
         Debug,
@@ -28,7 +33,12 @@ namespace TestFramework.Core.Logger
         /// <summary>
         /// Fatal level for very severe error events that will presumably lead the application to abort
         /// </summary>
-        Fatal
+        Fatal,
+
+        /// <summary>
+        /// Critical level for very severe error events that will presumably lead the application to abort
+        /// </summary>
+        Critical
     }
 }
 

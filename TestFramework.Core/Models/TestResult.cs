@@ -1,4 +1,5 @@
 using System;
+using TestFramework.Core.Tests;
 
 namespace TestFramework.Core.Models
 {
@@ -8,9 +9,39 @@ namespace TestFramework.Core.Models
     public class TestResult
     {
         /// <summary>
-        /// Gets or sets the name of the test
+        /// Gets the test type
         /// </summary>
-        public string TestName { get; set; }
+        public TestType TestType { get; }
+
+        /// <summary>
+        /// Gets the test name
+        /// </summary>
+        public string TestName { get; }
+
+        /// <summary>
+        /// Gets the start time of the test
+        /// </summary>
+        public DateTime StartTime { get; }
+
+        /// <summary>
+        /// Gets the end time of the test
+        /// </summary>
+        public DateTime EndTime { get; }
+
+        /// <summary>
+        /// Gets the duration of the test
+        /// </summary>
+        public TimeSpan Duration => EndTime - StartTime;
+
+        /// <summary>
+        /// Gets whether the test passed
+        /// </summary>
+        public bool Passed { get; }
+
+        /// <summary>
+        /// Gets the error message if the test failed
+        /// </summary>
+        public string? ErrorMessage { get; }
 
         /// <summary>
         /// Gets or sets the category of the test
@@ -33,26 +64,6 @@ namespace TestFramework.Core.Models
         public bool IsSuccess { get; set; }
 
         /// <summary>
-        /// Gets or sets the error message if the test failed
-        /// </summary>
-        public string ErrorMessage { get; set; }
-
-        /// <summary>
-        /// Gets or sets the start time of the test
-        /// </summary>
-        public DateTime StartTime { get; set; }
-
-        /// <summary>
-        /// Gets or sets the end time of the test
-        /// </summary>
-        public DateTime EndTime { get; set; }
-
-        /// <summary>
-        /// Gets the duration of the test
-        /// </summary>
-        public TimeSpan Duration => EndTime - StartTime;
-
-        /// <summary>
         /// Gets or sets the execution time in milliseconds
         /// </summary>
         public long ExecutionTimeMs { get; set; }
@@ -60,7 +71,7 @@ namespace TestFramework.Core.Models
         /// <summary>
         /// Gets or sets the stack trace if the test failed
         /// </summary>
-        public string StackTrace { get; set; }
+        public string? StackTrace { get; }
 
         /// <summary>
         /// Gets or sets the screenshot path if the test failed
@@ -77,24 +88,15 @@ namespace TestFramework.Core.Models
         /// </summary>
         public Exception? Exception { get; set; }
 
-        /// <summary>
-        /// Initializes a new instance of the TestResult class
-        /// </summary>
-        public TestResult()
+        public TestResult(TestType testType, string testName, DateTime startTime, DateTime endTime, bool passed, string? errorMessage = null, string? stackTrace = null)
         {
-            TestName = string.Empty;
-            Category = TestCategory.Unit;
-            Priority = TestPriority.Medium;
-            Status = TestStatus.Failed;
-            IsSuccess = false;
-            ErrorMessage = string.Empty;
-            StartTime = DateTime.Now;
-            EndTime = DateTime.Now;
-            ExecutionTimeMs = 0;
-            StackTrace = string.Empty;
-            Screenshot = null;
-            Message = null;
-            Exception = null;
+            TestType = testType;
+            TestName = testName;
+            StartTime = startTime;
+            EndTime = endTime;
+            Passed = passed;
+            ErrorMessage = errorMessage;
+            StackTrace = stackTrace;
         }
     }
 } 

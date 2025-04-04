@@ -6,12 +6,12 @@ namespace TestFramework.Tests
     {
         protected ILogger? Logger { get; private set; }
 
-        protected virtual void Setup()
+        protected void SetupBase()
         {
             Logger = new ConsoleLogger();
         }
 
-        protected virtual void TearDown()
+        protected void TearDownBase()
         {
             Logger = null;
         }

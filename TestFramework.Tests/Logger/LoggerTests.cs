@@ -1,4 +1,5 @@
-using NUnit.Framework;
+using System.Collections.Generic;
+using Xunit;
 using TestFramework.Core.Logger;
 using System;
 using System.IO;
@@ -7,56 +8,77 @@ namespace TestFramework.Tests.Logger
 {
     public class LoggerTests
     {
-        private string _testLogPath;
+        private readonly MockLogger _logger;
 
-        [SetUp]
-        public void Setup()
+        public LoggerTests()
         {
-            _testLogPath = Path.Combine(Path.GetTempPath(), "test_log.txt");
-            if (File.Exists(_testLogPath))
-            {
-                File.Delete(_testLogPath);
-            }
+            _logger = new MockLogger();
         }
 
-        [TestCase(LoggerType.Console, LogLevel.Info)]
-        [TestCase(LoggerType.Console, LogLevel.Warning)]
-        [TestCase(LoggerType.Console, LogLevel.Error)]
-        public void ConsoleLogger_ShouldLog_WithDifferentLevels(LoggerType loggerType, LogLevel level)
+        [Theory]
+        [InlineData(LogLevel.Debug, "Debug message")]
+        [InlineData(LogLevel.Info, "Info message")]
+        [InlineData(LogLevel.Warning, "Warning message")]
+        [InlineData(LogLevel.Error, "Error message")]
+        public void Log_WithDifferentLevels_LogsCorrectly(LogLevel level, string message)
         {
-            // Arrange
-            var logger = LoggerFactory.CreateLogger(loggerType);
-
             // Act
-            logger.Log("Test log message", level);
-
-            // Assert (Console output is not directly assertable, so we assume it runs without exception)
-            Assert.Pass("Console log test executed successfully.");
-        }
-
-        [TestCase(LogLevel.Info)]
-        [TestCase(LogLevel.Warning)]
-        [TestCase(LogLevel.Error)]
-        public void FileLogger_ShouldLog_WithDifferentLevels(LogLevel level)
-        {
-            // Arrange
-            var logger = LoggerFactory.CreateLogger(LoggerType.File, _testLogPath);
-
-            // Act
-            logger.Log("Test log message", level);
+            _logger.Log(message, level);
 
             // Assert
-            var logExists = File.Exists(_testLogPath);
-            Assert.IsTrue(logExists, "Log file should exist.");
-            var fileContents = File.ReadAllText(_testLogPath);
-            Assert.IsTrue(fileContents.Contains($"[{level}]"), "Log file should contain the correct log level.");
+            Assert.Contains(_logger.Logs, log => log.Contains($"[{level.ToString().ToUpper()}]") && log.Contains(message));
+        }
+
+        [Theory]
+        [InlineData(LogLevel.Debug, LogLevel.Info)]
+        [InlineData(LogLevel.Debug, LogLevel.Warning)]
+        [InlineData(LogLevel.Debug, LogLevel.Error)]
+        [InlineData(LogLevel.Info, LogLevel.Warning)]
+        [InlineData(LogLevel.Info, LogLevel.Error)]
+        [InlineData(LogLevel.Warning, LogLevel.Error)]
+        public void Log_WhenLevelIsBelowCurrent_DoesNotLog(LogLevel messageLevel, LogLevel currentLevel)
+        {
+            // Arrange
+            _logger.CurrentLogLevel = currentLevel;
+
+            // Act
+            _logger.Log("Test message", messageLevel);
+
+            // Assert
+            Assert.Empty(_logger.Logs);
+        }
+
+        [Fact]
+        public void Log_WithoutLevel_UsesInfoLevel()
+        {
+            // Act
+            _logger.Log("Test message");
+
+            // Assert
+            Assert.Contains(_logger.Logs, log => log.Contains("[INFO]") && log.Contains("Test message"));
+        }
+
+        [Fact]
+        public void ClearLogs_RemovesAllLogs()
+        {
+            // Arrange
+            _logger.Log("Test message 1");
+            _logger.Log("Test message 2");
+
+            // Act
+            _logger.ClearLogs();
+
+            // Assert
+            Assert.Empty(_logger.Logs);
         }
     }
 }
 
 /* 
  * Defines the LoggerTests class
- * Defines ConsoleLogger_ShouldLog_WithDifferentLevels function
- * Defines FileLogger_ShouldLog_WithDifferentLevels function
+ * Defines Log_WithDifferentLevels_LogsCorrectly function
+ * Defines Log_WhenLevelIsBelowCurrent_DoesNotLog function
+ * Defines Log_WithoutLevel_UsesInfoLevel function
+ * Defines ClearLogs_RemovesAllLogs function
  */     
     

@@ -1,5 +1,5 @@
 using Microsoft.Extensions.DependencyInjection;
-using TestFramework.Core.Interfaces;
+using TestFramework.Core.Application;
 using TestFramework.Core.Logger;
 using TestFramework.Core.Utils;
 
@@ -14,17 +14,15 @@ namespace TestFramework.Core.DependencyInjection
         /// Adds test framework services to the service collection
         /// </summary>
         /// <param name="services">The service collection</param>
-        /// <param name="loggerType">Type of logger to use</param>
         /// <returns>The service collection</returns>
-        public static IServiceCollection AddTestFramework(this IServiceCollection services, LoggerType loggerType = LoggerType.Console)
+        public static IServiceCollection AddTestFramework(this IServiceCollection services)
         {
             // Register core services
-            services.AddSingleton<ILogger>(_ => LoggerFactory.CreateLogger(loggerType));
-            services.AddSingleton<ProcessHelper>();
+            services.AddSingleton<ICppApplication, CppApplication>();
             
-            // Register test runner
-            services.AddScoped<ITestRunner, CppTestRunner>();
-            
+            // Logger should be registered by the consuming application
+            // Core project only defines the interface
+
             return services;
         }
     }
