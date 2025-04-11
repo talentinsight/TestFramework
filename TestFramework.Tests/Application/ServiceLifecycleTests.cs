@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Threading.Tasks;
@@ -89,6 +90,90 @@ namespace TestFramework.Tests.Application
             Assert.IsTrue(_app.IsServiceRunning("Database"));
             Assert.IsTrue(_app.IsServiceRunning("WebServer"));
             Assert.IsTrue(_app.IsServiceRunning("Cache"));
+=======
+using System;
+using System.Threading.Tasks;
+using TestFramework.Core.Application;
+using TestFramework.Tests.Logger;
+using Xunit;
+
+namespace TestFramework.Tests.Application
+{
+    public class ServiceLifecycleTests : IDisposable
+    {
+        private readonly MockLogger _logger;
+        private readonly CppApplication _application;
+
+        public ServiceLifecycleTests()
+        {
+            _logger = new MockLogger();
+            _application = new CppApplication(_logger, "test.exe");
+        }
+
+        public void Dispose()
+        {
+            _application.Dispose();
+        }
+
+        [Fact]
+        public async Task WhenServiceStarts_StateIsCorrect()
+        {
+            // Arrange
+            await _application.InitializeAsync();
+
+            // Act
+            var result = await _application.StartAsync();
+
+            // Assert
+            Assert.True(result);
+            Assert.True(_application.IsRunning);
+            Assert.False(_application.IsInErrorState);
+        }
+
+        [Fact]
+        public async Task WhenServiceStops_StateIsCorrect()
+        {
+            // Arrange
+            await _application.InitializeAsync();
+            await _application.StartAsync();
+
+            // Act
+            var result = await _application.StopAsync();
+
+            // Assert
+            Assert.True(result);
+            Assert.False(_application.IsRunning);
+            Assert.False(_application.IsInErrorState);
+        }
+
+        [Fact]
+        public async Task WhenServiceRestarts_StateIsCorrect()
+        {
+            // Arrange
+            await _application.InitializeAsync();
+            await _application.StartAsync();
+            await _application.StopAsync();
+
+            // Act
+            var result = await _application.RestartAsync();
+
+            // Assert
+            Assert.True(result);
+            Assert.True(_application.IsRunning);
+            Assert.False(_application.IsInErrorState);
+        }
+
+        [Fact]
+        public async Task WhenServiceFails_ErrorStateIsSet()
+        {
+            // Act
+            var result = await _application.StartAsync();
+
+            // Assert
+            Assert.False(result);
+            Assert.True(_application.IsInErrorState);
+            Assert.Equal("Application not initialized", _application.LastError);
+>>>>>>> d14476f86062bbdacd7e5bd7c4a9cb8565e91e68
         }
     }
 } 

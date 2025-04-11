@@ -1,10 +1,14 @@
 using System;
+<<<<<<< HEAD
 using System.IO;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+=======
+>>>>>>> d14476f86062bbdacd7e5bd7c4a9cb8565e91e68
 using TestFramework.Core.Logger;
 
 namespace TestFramework.Tests.Logger
 {
+<<<<<<< HEAD
     [TestClass]
     public class LoggerFactoryTests
     {
@@ -27,11 +31,18 @@ namespace TestFramework.Tests.Logger
 
         [TestMethod]
         public void CreateLogger_ConsoleType_ReturnsConsoleLogger()
+=======
+    public class LoggerFactoryTests
+    {
+        [Fact]
+        public void CreateLogger_WithConsoleType_ReturnsConsoleLogger()
+>>>>>>> d14476f86062bbdacd7e5bd7c4a9cb8565e91e68
         {
             // Act
             var logger = LoggerFactory.CreateLogger(LoggerType.Console);
 
             // Assert
+<<<<<<< HEAD
             Assert.IsInstanceOfType(logger, typeof(ConsoleLogger));
         }
 
@@ -69,6 +80,35 @@ namespace TestFramework.Tests.Logger
         {
             // Act
             LoggerFactory.CreateLogger(LoggerType.File);
+=======
+            Assert.NotNull(logger);
+            Assert.IsType<ConsoleLogger>(logger);
+        }
+
+        [Fact]
+        public void CreateLogger_WithFileType_ReturnsFileLogger()
+        {
+            // Act
+            var logger = LoggerFactory.CreateLogger(LoggerType.File, "test.log");
+
+            // Assert
+            Assert.NotNull(logger);
+            Assert.IsType<FileLogger>(logger);
+        }
+
+        [Fact]
+        public void CreateLogger_WithInvalidType_ThrowsArgumentException()
+        {
+            // Act & Assert
+            Assert.Throws<ArgumentException>(() => LoggerFactory.CreateLogger((LoggerType)999));
+        }
+
+        [Fact]
+        public void CreateLogger_WithFileTypeAndNoPath_ThrowsArgumentException()
+        {
+            // Act & Assert
+            Assert.Throws<ArgumentException>(() => LoggerFactory.CreateLogger(LoggerType.File));
+>>>>>>> d14476f86062bbdacd7e5bd7c4a9cb8565e91e68
         }
     }
 } 

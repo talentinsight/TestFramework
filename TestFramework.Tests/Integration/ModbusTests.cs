@@ -1,13 +1,21 @@
+<<<<<<< HEAD
 using System;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using TestFramework.Core.Application;
+=======
+using System.Threading.Tasks;
+>>>>>>> d14476f86062bbdacd7e5bd7c4a9cb8565e91e68
 using TestFramework.Core.Logger;
+using TestFramework.Tests.Logger;
+using TestFramework.Tests.Tests;
+using Xunit;
 
 namespace TestFramework.Tests.Integration
 {
+<<<<<<< HEAD
     [TestClass]
     public class ModbusTests
     {
@@ -568,6 +576,28 @@ namespace TestFramework.Tests.Integration
                 }
                 _disposed = true;
             }
+=======
+    public class ModbusTests
+    {
+        private readonly MockLogger _logger;
+        private readonly ProtocolTest _test;
+
+        public ModbusTests()
+        {
+            _logger = new MockLogger();
+            _test = new ProtocolTest(_logger, "modbus", "localhost", 502);
+        }
+
+        [Fact]
+        public async Task WhenModbusErrorOccurs_ErrorIsReported()
+        {
+            // Act
+            var result = await _test.RunAsync();
+
+            // Assert
+            Assert.False(result);
+            Assert.Contains(_logger.Logs, log => log.Contains("[ERROR]") && log.Contains("Protocol test failed"));
+>>>>>>> d14476f86062bbdacd7e5bd7c4a9cb8565e91e68
         }
     }
 } 

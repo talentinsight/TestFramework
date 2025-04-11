@@ -1,10 +1,14 @@
 using System;
 using System.IO;
+<<<<<<< HEAD
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+=======
+>>>>>>> d14476f86062bbdacd7e5bd7c4a9cb8565e91e68
 using TestFramework.Core.Logger;
 
 namespace TestFramework.Tests.Logger
 {
+<<<<<<< HEAD
     [TestClass]
     public class ConsoleLoggerTests
     {
@@ -33,8 +37,37 @@ namespace TestFramework.Tests.Logger
         {
             // Arrange
             var message = "Test info message";
+=======
+    public class ConsoleLoggerTests : IDisposable
+    {
+        private readonly StringWriter _stringWriter;
+        private readonly TextWriter _originalOutput;
+        private readonly ConsoleLogger _logger;
 
+        public ConsoleLoggerTests()
+        {
+            _stringWriter = new StringWriter();
+            _originalOutput = Console.Out;
+            Console.SetOut(_stringWriter);
+            _logger = new ConsoleLogger();
+        }
+
+        public void Dispose()
+        {
+            _stringWriter.Dispose();
+            Console.SetOut(_originalOutput);
+        }
+>>>>>>> d14476f86062bbdacd7e5bd7c4a9cb8565e91e68
+
+        [Theory]
+        [InlineData(LogLevel.Debug, "Debug message")]
+        [InlineData(LogLevel.Info, "Info message")]
+        [InlineData(LogLevel.Warning, "Warning message")]
+        [InlineData(LogLevel.Error, "Error message")]
+        public void Log_WithDifferentLevels_WritesToConsole(LogLevel level, string message)
+        {
             // Act
+<<<<<<< HEAD
             _logger.Log(LogLevel.Info, message);
 
             // Assert
@@ -91,6 +124,41 @@ namespace TestFramework.Tests.Logger
             Assert.IsTrue(output.Contains("[Error]"));
             Assert.IsTrue(output.Contains(exception.Message));
             Assert.IsTrue(output.Contains(exception.GetType().Name));
+=======
+            _logger.Log(message, level);
+
+            // Assert
+            var output = _stringWriter.ToString();
+            Assert.Contains($"[{level.ToString().ToUpper()}]", output);
+            Assert.Contains(message, output);
+        }
+
+        [Fact]
+        public void Log_WithoutLevel_UsesInfoLevel()
+        {
+            // Act
+            _logger.Log("Test message");
+
+            // Assert
+            var output = _stringWriter.ToString();
+            Assert.Contains("[INFO]", output);
+            Assert.Contains("Test message", output);
+        }
+
+        [Fact]
+        public void Log_WithLevelBelowCurrent_DoesNotLog()
+        {
+            // Arrange
+            _logger.SetLogLevel(LogLevel.Warning);
+
+            // Act
+            _logger.Log("Test message", LogLevel.Info);
+
+            // Assert
+            var output = _stringWriter.ToString();
+            Assert.DoesNotContain("[INFO]", output);
+            Assert.DoesNotContain("Test message", output);
+>>>>>>> d14476f86062bbdacd7e5bd7c4a9cb8565e91e68
         }
     }
 } 
