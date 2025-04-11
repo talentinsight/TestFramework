@@ -1,77 +1,74 @@
-using NUnit.Framework;
+using System;
 using System.IO;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using TestFramework.Core.Logger;
 
 namespace TestFramework.Tests.Logger
 {
-    [TestFixture]
+    [TestClass]
     public class LoggerFactoryTests
     {
-        private string _testLogFile;
+        private string _logFilePath;
 
-        [SetUp]
+        [TestInitialize]
         public void Setup()
         {
-            _testLogFile = Path.Combine(Path.GetTempPath(), "test_log.txt");
-            if (File.Exists(_testLogFile))
+            _logFilePath = Path.Combine(Path.GetTempPath(), $"test_log_{Guid.NewGuid()}.txt");
+        }
+
+        [TestCleanup]
+        public void Cleanup()
+        {
+            if (File.Exists(_logFilePath))
             {
-                File.Delete(_testLogFile);
+                File.Delete(_logFilePath);
             }
         }
 
-        [TearDown]
-        public void TearDown()
+        [TestMethod]
+        public void CreateLogger_ConsoleType_ReturnsConsoleLogger()
         {
-            if (File.Exists(_testLogFile))
-            {
-                File.Delete(_testLogFile);
-            }
-        }
-
-        [Test]
-        public void CreateLogger_WithConsoleType_ReturnsConsoleLogger()
-        {
-            // Arrange & Act
+            // Act
             var logger = LoggerFactory.CreateLogger(LoggerType.Console);
 
             // Assert
-            Assert.That(logger, Is.TypeOf<ConsoleLogger>());
+            Assert.IsInstanceOfType(logger, typeof(ConsoleLogger));
         }
 
-        [Test]
-        public void CreateLogger_WithFileType_ReturnsFileLogger()
+        [TestMethod]
+        public void CreateLogger_FileType_ReturnsFileLogger()
         {
-            // Arrange & Act
-            var logger = LoggerFactory.CreateLogger(LoggerType.File, _testLogFile);
+            // Act
+            var logger = LoggerFactory.CreateLogger(LoggerType.File, _logFilePath);
 
             // Assert
-            Assert.That(logger, Is.TypeOf<FileLogger>());
+            Assert.IsInstanceOfType(logger, typeof(FileLogger));
         }
 
-        [Test]
-        public void CreateLogger_WithMockType_ReturnsMockLogger()
+        [TestMethod]
+        public void CreateLogger_MockType_ReturnsMockLogger()
         {
-            // Arrange & Act
+            // Act
             var logger = LoggerFactory.CreateLogger(LoggerType.Mock);
 
             // Assert
-            Assert.That(logger, Is.TypeOf<MockLogger>());
+            Assert.IsInstanceOfType(logger, typeof(MockLogger));
         }
 
-        [Test]
-        public void CreateLogger_WithFileType_UsesDefaultPathWhenNull()
+        [TestMethod]
+        [ExpectedException(typeof(ArgumentException))]
+        public void CreateLogger_InvalidType_ThrowsArgumentException()
         {
-            // Arrange & Act
-            var logger = LoggerFactory.CreateLogger(LoggerType.File);
+            // Act
+            LoggerFactory.CreateLogger((LoggerType)999);
+        }
 
-            // Assert
-            Assert.That(logger, Is.TypeOf<FileLogger>());
-            
-            // Test the logger works with default path
-            logger.Log("Test message");
-            
-            // No exception should be thrown
-            Assert.Pass("FileLogger created with default path works correctly");
+        [TestMethod]
+        [ExpectedException(typeof(ArgumentNullException))]
+        public void CreateLogger_FileTypeWithoutPath_ThrowsArgumentNullException()
+        {
+            // Act
+            LoggerFactory.CreateLogger(LoggerType.File);
         }
     }
 } 

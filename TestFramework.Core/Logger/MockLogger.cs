@@ -3,26 +3,80 @@ using System.Collections.Generic;
 
 namespace TestFramework.Core.Logger
 {
+    /// <summary>
+    /// Mock logger implementation for testing
+    /// </summary>
     public class MockLogger : ILogger
     {
-        private readonly List<string> _logs = new List<string>();
+        private readonly List<LogEntry> _logEntries = new List<LogEntry>();
+        private bool _disposed;
 
-        public IReadOnlyList<string> Logs => _logs;
+        public IReadOnlyList<LogEntry> LogEntries => _logEntries;
 
-        public void Log(string message)
+        /// <summary>
+        /// Logs a message with the specified log level
+        /// </summary>
+        /// <param name="level">The log level</param>
+        /// <param name="message">The message to log</param>
+        public void Log(LogLevel level, string message)
         {
-            Log(message, LogLevel.Info);
+            if (_disposed)
+                throw new ObjectDisposedException(nameof(MockLogger));
+
+            _logEntries.Add(new LogEntry(level, message, null));
         }
 
-        public void Log(string message, LogLevel level)
+        /// <summary>
+        /// Logs a message with the specified log level and exception
+        /// </summary>
+        /// <param name="level">The log level</param>
+        /// <param name="message">The message to log</param>
+        /// <param name="exception">The exception to log</param>
+        public void Log(LogLevel level, string message, Exception exception)
         {
-            var logMessage = $"[Mock] [{level}] {DateTime.Now:HH:mm:ss} - {message}";
-            _logs.Add(logMessage);
+            if (_disposed)
+                throw new ObjectDisposedException(nameof(MockLogger));
+
+            _logEntries.Add(new LogEntry(level, message, exception));
         }
 
         public void Clear()
         {
-            _logs.Clear();
+            _logEntries.Clear();
+        }
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!_disposed)
+            {
+                if (disposing)
+                {
+                    _logEntries.Clear();
+                }
+                _disposed = true;
+            }
+        }
+    }
+
+    public class LogEntry
+    {
+        public LogLevel Level { get; }
+        public string Message { get; }
+        public Exception? Exception { get; }
+        public DateTime Timestamp { get; }
+
+        public LogEntry(LogLevel level, string message, Exception? exception = null)
+        {
+            Level = level;
+            Message = message;
+            Exception = exception;
+            Timestamp = DateTime.Now;
         }
     }
 }

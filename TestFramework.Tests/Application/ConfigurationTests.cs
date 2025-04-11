@@ -1,178 +1,89 @@
-using NUnit.Framework;
-using System.Linq;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System;
+using System.IO;
 using TestFramework.Core;
-using TestFramework.Core.Application;
 
 namespace TestFramework.Tests.Application
 {
-    [TestFixture]
+    [TestClass]
     public class ConfigurationTests
     {
-        [Test]
-        public void WhenLoadingValidConfiguration_ShouldSucceed()
+        private string _testConfigPath;
+        private Configuration _config;
+
+        [TestInitialize]
+        public void Setup()
         {
-            // Arrange
-            var test = new ConfigurationLoadTest("config.json");
-            
-            // Act
-            var result = test.Execute();
-            
-            // Assert
-            Assert.That(result.Status, Is.EqualTo(TestStatus.Passed));
+            _testConfigPath = Path.Combine(Path.GetTempPath(), "test_config.json");
+            _config = new Configuration(_testConfigPath);
         }
-        
-        [Test]
-        public void WhenValidatingConfiguration_ShouldSucceed()
+
+        [TestCleanup]
+        public void Cleanup()
         {
-            // Arrange
-            var test = new ConfigurationValidationTest();
-            
-            // Act
-            var result = test.Execute();
-            
-            // Assert
-            Assert.That(result.Status, Is.EqualTo(TestStatus.Passed));
-        }
-        
-        [Test]
-        public void WhenRetrievingValidConfigValue_ShouldReturnValue()
-        {
-            // Arrange
-            var test = new ConfigurationValueTest("LogLevel", "INFO");
-            
-            // Act
-            var result = test.Execute();
-            
-            // Assert
-            Assert.That(result.Status, Is.EqualTo(TestStatus.Passed));
-        }
-        
-        [Test]
-        public void WhenRetrievingInvalidConfigValue_ShouldFail()
-        {
-            // Arrange
-            var test = new ConfigurationValueTest("NonExistentKey", "SomeValue");
-            
-            // Act
-            var result = test.Execute();
-            
-            // Assert
-            Assert.That(result.Status, Is.EqualTo(TestStatus.Failed));
-        }
-        
-        [Test]
-        public void WhenRetrievingAllConfigValues_ShouldReturnAllValues()
-        {
-            // Arrange
-            var test = new ConfigurationAllValuesTest();
-            
-            // Act
-            var result = test.Execute();
-            
-            // Assert
-            Assert.That(result.Status, Is.EqualTo(TestStatus.Passed));
-        }
-    }
-    
-    // Configuration load test
-    public class ConfigurationLoadTest : CppApplicationTest
-    {
-        private readonly string _configPath;
-        
-        public ConfigurationLoadTest(string configPath)
-        {
-            _configPath = configPath;
-        }
-        
-        protected override ICppApplication CreateApplication()
-        {
-            return new MockCppApplication();
-        }
-        
-        protected override void RunTest()
-        {
-            AssertTrue(Application.LoadConfiguration(_configPath), 
-                $"Failed to load configuration from {_configPath}");
-        }
-    }
-    
-    // Configuration validation test
-    public class ConfigurationValidationTest : CppApplicationTest
-    {
-        protected override ICppApplication CreateApplication()
-        {
-            return new MockCppApplication();
-        }
-        
-        protected override void RunTest()
-        {
-            // First load configuration
-            AssertTrue(Application.LoadConfiguration("config.json"), 
-                "Failed to load configuration");
-                
-            // Then validate it
-            AssertTrue(Application.ValidateConfiguration(), 
-                "Configuration validation failed");
-        }
-    }
-    
-    // Configuration value test
-    public class ConfigurationValueTest : CppApplicationTest
-    {
-        private readonly string _key;
-        private readonly string _expectedValue;
-        
-        public ConfigurationValueTest(string key, string expectedValue)
-        {
-            _key = key;
-            _expectedValue = expectedValue;
-        }
-        
-        protected override ICppApplication CreateApplication()
-        {
-            return new MockCppApplication();
-        }
-        
-        protected override void RunTest()
-        {
-            // First load configuration
-            AssertTrue(Application.LoadConfiguration("config.json"), 
-                "Failed to load configuration");
-                
-            // Then get and check a specific value
-            string value = Application.GetConfigurationValue(_key);
-            
-            if (value == null)
+            if (File.Exists(_testConfigPath))
             {
-                throw new System.Exception($"Configuration key '{_key}' not found");
+                File.Delete(_testConfigPath);
             }
-            
-            AssertEqual(_expectedValue, value, 
-                $"Configuration value for '{_key}' doesn't match expected value");
         }
-    }
-    
-    // Configuration all values test
-    public class ConfigurationAllValuesTest : CppApplicationTest
-    {
-        protected override ICppApplication CreateApplication()
+
+        [TestMethod]
+        public void LoadConfiguration_ValidFile_LoadsSuccessfully()
         {
-            return new MockCppApplication();
+            // Arrange
+            File.WriteAllText(_testConfigPath, "{\n  \"key\": \"value\"\n}");
+
+            // Act
+            _config.Load();
+
+            // Assert
+            Assert.AreEqual("value", _config.GetValue("key"));
         }
-        
-        protected override void RunTest()
+
+        [TestMethod]
+        [ExpectedException(typeof(FileNotFoundException))]
+        public void LoadConfiguration_InvalidFile_ThrowsException()
         {
-            // First load configuration
-            AssertTrue(Application.LoadConfiguration("config.json"), 
-                "Failed to load configuration");
-                
-            // Then get all values
-            var values = Application.GetAllConfigurationValues();
-            
-            AssertTrue(values.Count > 0, "Configuration should contain at least one value");
-            AssertTrue(values.ContainsKey("LogLevel"), "Configuration should contain LogLevel");
-            AssertTrue(values.ContainsKey("MaxConnections"), "Configuration should contain MaxConnections");
-            AssertTrue(values.ContainsKey("Timeout"), "Configuration should contain Timeout");
+            // Act
+            _config.Load();
+        }
+
+        [TestMethod]
+        public void SaveConfiguration_ValidData_SavesSuccessfully()
+        {
+            // Arrange
+            _config.SetValue("key", "value");
+
+            // Act
+            _config.Save();
+
+            // Assert
+            Assert.IsTrue(File.Exists(_testConfigPath));
+            string content = File.ReadAllText(_testConfigPath);
+            Assert.IsTrue(content.Contains("\"key\": \"value\""));
+        }
+
+        [TestMethod]
+        public void GetValue_ExistingKey_ReturnsValue()
+        {
+            // Arrange
+            _config.SetValue("testKey", "testValue");
+
+            // Act
+            string value = _config.GetValue("testKey");
+
+            // Assert
+            Assert.AreEqual("testValue", value);
+        }
+
+        [TestMethod]
+        public void GetValue_NonExistingKey_ReturnsNull()
+        {
+            // Act
+            string value = _config.GetValue("nonexistent");
+
+            // Assert
+            Assert.IsNull(value);
         }
     }
 } 

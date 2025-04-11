@@ -1,182 +1,101 @@
-using NUnit.Framework;
-using System.Linq;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System;
+using System.Threading.Tasks;
 using TestFramework.Core;
-using TestFramework.Core.Application;
 
 namespace TestFramework.Tests.Application
 {
-    [TestFixture]
+    [TestClass]
     public class ErrorHandlingTests
     {
-        [Test]
-        public void WhenErrorOccurs_ShouldSetErrorState()
+        private CppApplication _app;
+
+        [TestInitialize]
+        public void Setup()
+        {
+            _app = new CppApplication();
+        }
+
+        [TestCleanup]
+        public void Cleanup()
+        {
+            _app?.Dispose();
+        }
+
+        [TestMethod]
+        [ExpectedException(typeof(InvalidOperationException))]
+        public async Task HandleError_InvalidOperation_ThrowsException()
         {
             // Arrange
-            var test = new ErrorStateTest();
-            
+            await _app.StartAsync();
+
             // Act
-            var result = test.Execute();
-            
-            // Assert
-            Assert.That(result.Status, Is.EqualTo(TestStatus.Failed));
-            Assert.That(result.Message, Does.Contain("error state"));
+            await _app.ExecuteInvalidOperationAsync();
         }
-        
-        [Test]
-        public void WhenErrorOccurs_ShouldRecordErrorMessage()
+
+        [TestMethod]
+        public async Task HandleError_RecoverableError_RecoversSuccessfully()
         {
             // Arrange
-            var test = new ErrorMessageTest();
-            
+            await _app.StartAsync();
+
             // Act
-            var result = test.Execute();
-            
+            try
+            {
+                await _app.ExecuteRecoverableErrorAsync();
+            }
+            catch (Exception)
+            {
+                // Expected exception
+            }
+
             // Assert
-            Assert.That(result.Status, Is.EqualTo(TestStatus.Failed));
-            Assert.That(result.Message, Does.Contain("error message"));
+            Assert.IsTrue(_app.IsRunning);
         }
-        
-        [Test]
-        public void WhenErrorCleared_ShouldResetErrorState()
+
+        [TestMethod]
+        public async Task HandleError_NonRecoverableError_StopsApplication()
         {
             // Arrange
-            var test = new ErrorClearTest();
-            
+            await _app.StartAsync();
+
             // Act
-            var result = test.Execute();
-            
+            try
+            {
+                await _app.ExecuteNonRecoverableErrorAsync();
+            }
+            catch (Exception)
+            {
+                // Expected exception
+            }
+
             // Assert
-            Assert.That(result.Status, Is.EqualTo(TestStatus.Passed));
+            Assert.IsFalse(_app.IsRunning);
         }
-        
-        [Test]
-        public void WhenMultipleErrors_ShouldRecordErrorHistory()
+
+        [TestMethod]
+        public async Task HandleError_MultipleErrors_HandlesAllErrors()
         {
             // Arrange
-            var test = new ErrorHistoryTest();
-            
+            await _app.StartAsync();
+            int errorCount = 0;
+
             // Act
-            var result = test.Execute();
-            
+            for (int i = 0; i < 5; i++)
+            {
+                try
+                {
+                    await _app.ExecuteRecoverableErrorAsync();
+                }
+                catch (Exception)
+                {
+                    errorCount++;
+                }
+            }
+
             // Assert
-            Assert.That(result.Status, Is.EqualTo(TestStatus.Failed));
-            Assert.That(result.Message, Does.Contain("error history"));
-        }
-    }
-    
-    // Error state test
-    public class ErrorStateTest : CppApplicationTest
-    {
-        protected override ICppApplication CreateApplication()
-        {
-            return new MockCppApplication();
-        }
-        
-        protected override void RunTest()
-        {
-            // Verify application is not initially in error state
-            AssertFalse(Application.IsInErrorState, "Application should not be in error state initially");
-            
-            // Attempt to start non-existent service (will cause error)
-            Application.StartService("NonExistentService");
-            
-            // Verify application is now in error state
-            AssertTrue(Application.IsInErrorState, 
-                "Application should be in error state after error");
-                
-            // Verify last error message is not null
-            string lastError = Application.GetLastError();
-            AssertTrue(!string.IsNullOrEmpty(lastError), 
-                "Last error message should not be empty");
-                
-            throw new System.Exception("Application in error state: " + lastError);
-        }
-    }
-    
-    // Error message test
-    public class ErrorMessageTest : CppApplicationTest
-    {
-        protected override ICppApplication CreateApplication()
-        {
-            return new MockCppApplication();
-        }
-        
-        protected override void RunTest()
-        {
-            // Attempt to set invalid log level (will cause error)
-            Application.SetLogLevel("INVALID_LEVEL");
-            
-            // Verify error message
-            string lastError = Application.GetLastError();
-            AssertTrue(lastError.Contains("Invalid log level"), 
-                "Error message should indicate invalid log level");
-                
-            // Include specific text in the error message for the test assertion
-            throw new System.Exception("error message: " + lastError);
-        }
-    }
-    
-    // Error clear test
-    public class ErrorClearTest : CppApplicationTest
-    {
-        protected override ICppApplication CreateApplication()
-        {
-            return new MockCppApplication();
-        }
-        
-        protected override void RunTest()
-        {
-            // Attempt to start non-existent service (will cause error)
-            Application.StartService("NonExistentService");
-            
-            // Verify application is in error state
-            AssertTrue(Application.IsInErrorState, 
-                "Application should be in error state after error");
-                
-            // Clear error state
-            AssertTrue(Application.ClearErrorState(), 
-                "Clearing error state should succeed");
-                
-            // Verify error state is cleared
-            AssertFalse(Application.IsInErrorState, 
-                "Application should not be in error state after clearing");
-                
-            // Verify last error is cleared
-            AssertTrue(string.IsNullOrEmpty(Application.GetLastError()), 
-                "Last error should be cleared");
-        }
-    }
-    
-    // Error history test
-    public class ErrorHistoryTest : CppApplicationTest
-    {
-        protected override ICppApplication CreateApplication()
-        {
-            return new MockCppApplication();
-        }
-        
-        protected override void RunTest()
-        {
-            // Generate multiple errors
-            Application.StartService("NonExistentService1");
-            Application.StartService("NonExistentService2");
-            Application.SetLogLevel("INVALID_LEVEL");
-            
-            // Verify error history
-            var errorHistory = Application.GetErrorHistory();
-            AssertTrue(errorHistory.Count >= 3, 
-                "Error history should contain at least 3 entries");
-                
-            // Verify specific error messages are in history
-            AssertTrue(errorHistory.Any(e => e.Contains("NonExistentService1")), 
-                "Error history should contain first service error");
-            AssertTrue(errorHistory.Any(e => e.Contains("NonExistentService2")), 
-                "Error history should contain second service error");
-            AssertTrue(errorHistory.Any(e => e.Contains("Invalid log level")), 
-                "Error history should contain log level error");
-                
-            // Include specific text in the error message for the test assertion
-            throw new System.Exception("error history: " + string.Join(", ", errorHistory));
+            Assert.AreEqual(5, errorCount);
+            Assert.IsTrue(_app.IsRunning);
         }
     }
 } 

@@ -1,49 +1,76 @@
-using NUnit.Framework;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System;
+using System.Threading.Tasks;
 using TestFramework.Core;
 using TestFramework.Core.Application;
 
 namespace TestFramework.Tests.Application
 {
-    [TestFixture]
-    public class CppApplicationTests : CppApplicationTest
+    [TestClass]
+    public class CppApplicationTests
     {
-        private const string TestVersion = "2.0.0";
+        private CppApplication _app;
 
-        protected override ICppApplication CreateApplication()
+        [TestInitialize]
+        public void Setup()
         {
-            return new MockCppApplication(TestVersion);
+            _app = new CppApplication();
         }
 
-        protected override void RunTest()
+        [TestCleanup]
+        public void Cleanup()
         {
-            // Basic test implementation - will be overridden by specific test methods
+            _app?.Dispose();
         }
 
-        [Test]
-        public void WhenApplicationInitialized_ShouldReturnCorrectVersion()
+        [TestMethod]
+        public async Task StartApplication_ValidConfiguration_StartsSuccessfully()
         {
             // Arrange
-            var test = new VersionCheckTest(TestVersion);
-            
+            _app.Configuration.SetValue("LogLevel", "INFO");
+
             // Act
-            var result = test.Execute();
-            
+            await _app.StartAsync();
+
             // Assert
-            NUnit.Framework.Assert.That(result.Status, Is.EqualTo(TestStatus.Passed));
+            Assert.IsTrue(_app.IsRunning);
         }
 
-        [Test]
-        public void WhenApplicationErrors_ShouldFailGracefully()
+        [TestMethod]
+        [ExpectedException(typeof(InvalidOperationException))]
+        public async Task StartApplication_InvalidConfiguration_ThrowsException()
         {
             // Arrange
-            var test = new ErrorHandlingTest();
-            
+            _app.Configuration.SetValue("InvalidKey", "InvalidValue");
+
             // Act
-            var result = test.Execute();
-            
+            await _app.StartAsync();
+        }
+
+        [TestMethod]
+        public async Task StopApplication_RunningApplication_StopsSuccessfully()
+        {
+            // Arrange
+            await _app.StartAsync();
+
+            // Act
+            await _app.StopAsync();
+
             // Assert
-            NUnit.Framework.Assert.That(result.Status, Is.EqualTo(TestStatus.Failed));
-            NUnit.Framework.Assert.That(result.Message, Does.Contain("Simulated application error"));
+            Assert.IsFalse(_app.IsRunning);
+        }
+
+        [TestMethod]
+        public async Task RestartApplication_RunningApplication_RestartsSuccessfully()
+        {
+            // Arrange
+            await _app.StartAsync();
+
+            // Act
+            await _app.RestartAsync();
+
+            // Assert
+            Assert.IsTrue(_app.IsRunning);
         }
     }
 
