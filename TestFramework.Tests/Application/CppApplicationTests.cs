@@ -1,5 +1,12 @@
+<<<<<<< HEAD
 using System;
 using System.Threading.Tasks;
+=======
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System;
+using System.Threading.Tasks;
+using TestFramework.Core;
+>>>>>>> df66c302549408ea17e5338bbce861a452d6d404
 using TestFramework.Core.Application;
 using TestFramework.Core.Logger;
 using TestFramework.Tests.Logger;
@@ -7,6 +14,7 @@ using Xunit;
 
 namespace TestFramework.Tests.Application
 {
+<<<<<<< HEAD
     public class CppApplicationTests : IDisposable
     {
         private readonly MockLogger _logger;
@@ -68,6 +76,73 @@ namespace TestFramework.Tests.Application
             Assert.True(result);
             Assert.True(_application.IsInitialized);
             Assert.True(_application.IsRunning);
+=======
+    [TestClass]
+    public class CppApplicationTests
+    {
+        private CppApplication _app;
+
+        [TestInitialize]
+        public void Setup()
+        {
+            _app = new CppApplication();
+        }
+
+        [TestCleanup]
+        public void Cleanup()
+        {
+            _app?.Dispose();
+        }
+
+        [TestMethod]
+        public async Task StartApplication_ValidConfiguration_StartsSuccessfully()
+        {
+            // Arrange
+            _app.Configuration.SetValue("LogLevel", "INFO");
+
+            // Act
+            await _app.StartAsync();
+
+            // Assert
+            Assert.IsTrue(_app.IsRunning);
+        }
+
+        [TestMethod]
+        [ExpectedException(typeof(InvalidOperationException))]
+        public async Task StartApplication_InvalidConfiguration_ThrowsException()
+        {
+            // Arrange
+            _app.Configuration.SetValue("InvalidKey", "InvalidValue");
+
+            // Act
+            await _app.StartAsync();
+        }
+
+        [TestMethod]
+        public async Task StopApplication_RunningApplication_StopsSuccessfully()
+        {
+            // Arrange
+            await _app.StartAsync();
+
+            // Act
+            await _app.StopAsync();
+
+            // Assert
+            Assert.IsFalse(_app.IsRunning);
+        }
+
+        [TestMethod]
+        public async Task RestartApplication_RunningApplication_RestartsSuccessfully()
+        {
+            // Arrange
+            await _app.StartAsync();
+
+            // Act
+            await _app.RestartAsync();
+
+            // Assert
+            Assert.IsTrue(_app.IsRunning);
+>>>>>>> df66c302549408ea17e5338bbce861a452d6d404
         }
 
         [Fact]

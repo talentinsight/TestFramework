@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 using System;
 using System.IO;
 using System.Threading.Tasks;
@@ -27,10 +28,36 @@ namespace TestFramework.Tests.Application
         public void Dispose()
         {
             _application.Dispose();
+=======
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System;
+using System.IO;
+using TestFramework.Core;
+
+namespace TestFramework.Tests.Application
+{
+    [TestClass]
+    public class ConfigurationTests
+    {
+        private string _testConfigPath;
+        private Configuration _config;
+
+        [TestInitialize]
+        public void Setup()
+        {
+            _testConfigPath = Path.Combine(Path.GetTempPath(), "test_config.json");
+            _config = new Configuration(_testConfigPath);
+        }
+
+        [TestCleanup]
+        public void Cleanup()
+        {
+>>>>>>> df66c302549408ea17e5338bbce861a452d6d404
             if (File.Exists(_testConfigPath))
             {
                 File.Delete(_testConfigPath);
             }
+<<<<<<< HEAD
         }
 
         [Fact]
@@ -181,5 +208,67 @@ namespace TestFramework.Tests.Application
         public int TestTimeout { get; set; }
         public int RetryCount { get; set; }
         public string LogLevel { get; set; } = string.Empty;
+=======
+        }
+
+        [TestMethod]
+        public void LoadConfiguration_ValidFile_LoadsSuccessfully()
+        {
+            // Arrange
+            File.WriteAllText(_testConfigPath, "{\n  \"key\": \"value\"\n}");
+
+            // Act
+            _config.Load();
+
+            // Assert
+            Assert.AreEqual("value", _config.GetValue("key"));
+        }
+
+        [TestMethod]
+        [ExpectedException(typeof(FileNotFoundException))]
+        public void LoadConfiguration_InvalidFile_ThrowsException()
+        {
+            // Act
+            _config.Load();
+        }
+
+        [TestMethod]
+        public void SaveConfiguration_ValidData_SavesSuccessfully()
+        {
+            // Arrange
+            _config.SetValue("key", "value");
+
+            // Act
+            _config.Save();
+
+            // Assert
+            Assert.IsTrue(File.Exists(_testConfigPath));
+            string content = File.ReadAllText(_testConfigPath);
+            Assert.IsTrue(content.Contains("\"key\": \"value\""));
+        }
+
+        [TestMethod]
+        public void GetValue_ExistingKey_ReturnsValue()
+        {
+            // Arrange
+            _config.SetValue("testKey", "testValue");
+
+            // Act
+            string value = _config.GetValue("testKey");
+
+            // Assert
+            Assert.AreEqual("testValue", value);
+        }
+
+        [TestMethod]
+        public void GetValue_NonExistingKey_ReturnsNull()
+        {
+            // Act
+            string value = _config.GetValue("nonexistent");
+
+            // Assert
+            Assert.IsNull(value);
+        }
+>>>>>>> df66c302549408ea17e5338bbce861a452d6d404
     }
 } 
