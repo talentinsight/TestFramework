@@ -52,11 +52,11 @@ namespace TestFramework.Core.Application
                     _listener = new TcpListener(IPAddress.Parse(host), port);
                     _listener.Start();
                     _isRunning = true;
-                    Logger.Log(LogLevel.Info, $"Modbus slave started on {host}:{port}");
+                    Logger.Log($"Modbus slave started on {host}:{port}", LogLevel.Info);
                 }
                 catch (Exception ex)
                 {
-                    Logger.Log(LogLevel.Error, $"Failed to start Modbus slave: {ex.Message}", ex);
+                    Logger.Log($"Failed to start Modbus slave: {ex.Message}", LogLevel.Error);
                     throw;
                 }
             });
@@ -78,11 +78,11 @@ namespace TestFramework.Core.Application
                 {
                     _listener?.Stop();
                     _isRunning = false;
-                    Logger.Log(LogLevel.Info, "Modbus slave stopped");
+                    Logger.Log("Modbus slave stopped", LogLevel.Info);
                 }
                 catch (Exception ex)
                 {
-                    Logger.Log(LogLevel.Error, $"Failed to stop Modbus slave: {ex.Message}", ex);
+                    Logger.Log($"Failed to stop Modbus slave: {ex.Message}", LogLevel.Error);
                     throw;
                 }
             });

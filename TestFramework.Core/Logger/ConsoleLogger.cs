@@ -8,25 +8,32 @@ namespace TestFramework.Core.Logger
     public class ConsoleLogger : ILogger
     {
         private bool _disposed;
+        private LogLevel _currentLogLevel = LogLevel.Info;
 
         /// <summary>
         /// Logs a message with the specified log level
         /// </summary>
-        /// <param name="level">The log level</param>
         /// <param name="message">The message to log</param>
-        public void Log(LogLevel level, string message)
+        /// <param name="level">The log level</param>
+        public void Log(string message, LogLevel level)
         {
             if (_disposed)
                 throw new ObjectDisposedException(nameof(ConsoleLogger));
 
+            if (level < _currentLogLevel)
+                return;
+
             string timestamp = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff");
             string levelStr = level switch
             {
-                LogLevel.Debug => "[Debug]",
-                LogLevel.Info => "[Info]",
-                LogLevel.Warning => "[Warning]",
-                LogLevel.Error => "[Error]",
-                _ => "[Unknown]"
+                LogLevel.Trace => "[TRACE]",
+                LogLevel.Debug => "[DEBUG]",
+                LogLevel.Info => "[INFO]",
+                LogLevel.Warning => "[WARNING]",
+                LogLevel.Error => "[ERROR]",
+                LogLevel.Fatal => "[FATAL]",
+                LogLevel.Critical => "[CRITICAL]",
+                _ => "[UNKNOWN]"
             };
 
             Console.WriteLine($"{timestamp} {levelStr} {message}");
@@ -42,15 +49,21 @@ namespace TestFramework.Core.Logger
         {
             if (_disposed)
                 throw new ObjectDisposedException(nameof(ConsoleLogger));
+                
+            if (level < _currentLogLevel)
+                return;
 
             string timestamp = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff");
             string levelStr = level switch
             {
-                LogLevel.Debug => "[Debug]",
-                LogLevel.Info => "[Info]",
-                LogLevel.Warning => "[Warning]",
-                LogLevel.Error => "[Error]",
-                _ => "[Unknown]"
+                LogLevel.Trace => "[TRACE]",
+                LogLevel.Debug => "[DEBUG]",
+                LogLevel.Info => "[INFO]",
+                LogLevel.Warning => "[WARNING]",
+                LogLevel.Error => "[ERROR]",
+                LogLevel.Fatal => "[FATAL]",
+                LogLevel.Critical => "[CRITICAL]",
+                _ => "[UNKNOWN]"
             };
 
             string logMessage = $"{timestamp} {levelStr} {message}";
@@ -61,6 +74,24 @@ namespace TestFramework.Core.Logger
             }
 
             Console.WriteLine(logMessage);
+        }
+
+        /// <summary>
+        /// Logs a message with Info level
+        /// </summary>
+        /// <param name="message">The message to log</param>
+        public void Log(string message)
+        {
+            Log(message, LogLevel.Info);
+        }
+
+        /// <summary>
+        /// Sets the current log level
+        /// </summary>
+        /// <param name="level">The log level to set</param>
+        public void SetLogLevel(LogLevel level)
+        {
+            _currentLogLevel = level;
         }
 
         public void Dispose()

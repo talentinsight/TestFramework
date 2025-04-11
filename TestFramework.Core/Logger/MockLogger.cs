@@ -10,18 +10,22 @@ namespace TestFramework.Core.Logger
     {
         private readonly List<LogEntry> _logEntries = new List<LogEntry>();
         private bool _disposed;
+        private LogLevel _currentLogLevel = LogLevel.Info;
 
         public IReadOnlyList<LogEntry> LogEntries => _logEntries;
 
         /// <summary>
         /// Logs a message with the specified log level
         /// </summary>
-        /// <param name="level">The log level</param>
         /// <param name="message">The message to log</param>
-        public void Log(LogLevel level, string message)
+        /// <param name="level">The log level</param>
+        public void Log(string message, LogLevel level)
         {
             if (_disposed)
                 throw new ObjectDisposedException(nameof(MockLogger));
+
+            if (level < _currentLogLevel)
+                return;
 
             _logEntries.Add(new LogEntry(level, message, null));
         }
@@ -37,7 +41,28 @@ namespace TestFramework.Core.Logger
             if (_disposed)
                 throw new ObjectDisposedException(nameof(MockLogger));
 
+            if (level < _currentLogLevel)
+                return;
+
             _logEntries.Add(new LogEntry(level, message, exception));
+        }
+
+        /// <summary>
+        /// Logs a message with Info level
+        /// </summary>
+        /// <param name="message">The message to log</param>
+        public void Log(string message)
+        {
+            Log(message, LogLevel.Info);
+        }
+
+        /// <summary>
+        /// Sets the current log level
+        /// </summary>
+        /// <param name="level">The log level to set</param>
+        public void SetLogLevel(LogLevel level)
+        {
+            _currentLogLevel = level;
         }
 
         public void Clear()

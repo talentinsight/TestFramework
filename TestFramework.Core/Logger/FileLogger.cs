@@ -7,11 +7,12 @@ namespace TestFramework.Core.Logger
     /// <summary>
     /// Logger implementation that writes to a file
     /// </summary>
-    public class FileLogger : ILogger, IDisposable
+    public class FileLogger : ILogger
     {
         private readonly string _filePath;
         private readonly object _lock = new object();
         private bool _disposed;
+        private LogLevel _currentLogLevel = LogLevel.Info;
 
         /// <summary>
         /// Initializes a new instance of the FileLogger class
@@ -25,12 +26,15 @@ namespace TestFramework.Core.Logger
         /// <summary>
         /// Logs a message with the specified log level
         /// </summary>
-        /// <param name="level">The log level</param>
         /// <param name="message">The message to log</param>
-        public void Log(LogLevel level, string message)
+        /// <param name="level">The log level</param>
+        public void Log(string message, LogLevel level)
         {
             if (_disposed)
                 throw new ObjectDisposedException(nameof(FileLogger));
+
+            if (level < _currentLogLevel)
+                return;
 
             string logMessage = FormatLogMessage(level, message, null);
             WriteToFile(logMessage);
@@ -47,8 +51,29 @@ namespace TestFramework.Core.Logger
             if (_disposed)
                 throw new ObjectDisposedException(nameof(FileLogger));
 
+            if (level < _currentLogLevel)
+                return;
+
             string logMessage = FormatLogMessage(level, message, exception);
             WriteToFile(logMessage);
+        }
+
+        /// <summary>
+        /// Logs a message with Info level
+        /// </summary>
+        /// <param name="message">The message to log</param>
+        public void Log(string message)
+        {
+            Log(message, LogLevel.Info);
+        }
+
+        /// <summary>
+        /// Sets the current log level
+        /// </summary>
+        /// <param name="level">The log level to set</param>
+        public void SetLogLevel(LogLevel level)
+        {
+            _currentLogLevel = level;
         }
 
         private string FormatLogMessage(LogLevel level, string message, Exception? exception)
@@ -56,11 +81,14 @@ namespace TestFramework.Core.Logger
             string timestamp = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff");
             string levelStr = level switch
             {
-                LogLevel.Debug => "[Debug]",
-                LogLevel.Info => "[Info]",
-                LogLevel.Warning => "[Warning]",
-                LogLevel.Error => "[Error]",
-                _ => "[Unknown]"
+                LogLevel.Trace => "[TRACE]",
+                LogLevel.Debug => "[DEBUG]",
+                LogLevel.Info => "[INFO]",
+                LogLevel.Warning => "[WARNING]",
+                LogLevel.Error => "[ERROR]",
+                LogLevel.Fatal => "[FATAL]",
+                LogLevel.Critical => "[CRITICAL]",
+                _ => "[UNKNOWN]"
             };
 
             string logMessage = $"{timestamp} {levelStr} {message}";
@@ -87,8 +115,18 @@ namespace TestFramework.Core.Logger
 
         public void Dispose()
         {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
             if (!_disposed)
             {
+                if (disposing)
+                {
+                    // Clean up managed resources
+                }
                 _disposed = true;
             }
         }
