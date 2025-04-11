@@ -243,7 +243,7 @@ namespace TestFramework.Tests.Application
 
         public string GetLogLevel()
         {
-            return _logLevel;
+            return _currentLogLevel.ToString().ToUpper();
         }
 
         public bool ClearLogs()
